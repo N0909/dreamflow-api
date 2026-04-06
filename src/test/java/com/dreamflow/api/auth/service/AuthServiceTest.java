@@ -41,7 +41,7 @@ public class AuthServiceTest {
 
     @BeforeEach
     void setup(){
-        request = new SignupRequest("N", "email", "password");
+        request = new SignupRequest("test", "test@email.com", "test");
     }
 
     @Test
@@ -83,11 +83,11 @@ public class AuthServiceTest {
     @Test
     void shouldLoginSuccessfully(){
         // Mock Behaviour
-        loginRequest = new LoginRequest("nikhil@gmail.com", "password");
+        loginRequest = new LoginRequest("test@gmail.com", "test");
 
         CustomUserDetails userDetails = new CustomUserDetails(
                 1,
-                "nikhil@gmail.com",
+                "test@gmail.com",
                 "encoded_password"
         );
 
@@ -96,7 +96,7 @@ public class AuthServiceTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
 
-        when(jwtService.generateToken(any(), eq("nikhil@gmail.com"))).thenReturn(
+        when(jwtService.generateToken(any(), eq("test@gmail.com"))).thenReturn(
                 "mocked_jwt"
         );
 
@@ -106,13 +106,13 @@ public class AuthServiceTest {
         assertEquals("mocked_jwt", response.token());
 
         verify(authenticationManager).authenticate(any());
-        verify(jwtService).generateToken(any(), eq("nikhil@gmail.com"));
+        verify(jwtService).generateToken(any(), eq("test@gmail.com"));
     }
 
     @Test
     void shouldThrowExceptionWhenPrincipalInvalid() {
 
-        loginRequest = new LoginRequest("nikhil@gmail.com", "password");
+        loginRequest = new LoginRequest("test@email.com", "test");
 
         Authentication authentication = mock(Authentication.class);
 

@@ -25,7 +25,7 @@ public class AuthControllerTest {
     @Test
     void shouldLoginSuccessfully() throws Exception{
         String requestJson = """ 
-                        {"email":"nikhil@gmail.com","password":"password"}
+                        {"email":"test@email.com","password":"test"}
                 """;
         when (authService.login(any()))
                 .thenReturn(new LoginResponse("mocked_jwt"));

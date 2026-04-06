@@ -22,9 +22,9 @@ public class JwtServiceTest {
     void setup(){
         claims = new HashMap<>();
         claims.put("id", 10);
-        claims.put("email", "nikhil@gmail.com");
+        claims.put("email", "test@email.com");
 
-        token = jwtService.generateToken(claims, "nikhil@");
+        token = jwtService.generateToken(claims, "test@");
     }
 
     @Test
@@ -34,13 +34,13 @@ public class JwtServiceTest {
 
     @Test
     void shouldBeValid(){
-        boolean isValid = jwtService.isTokenValid(token, "nikhil@");
+        boolean isValid = jwtService.isTokenValid(token, "test@");
         assertTrue(isValid);
     }
 
     @Test
     void shouldNotBeValid(){
-        boolean isValid = jwtService.isTokenValid(token, "n");
+        boolean isValid = jwtService.isTokenValid(token, "test");
         assertFalse(isValid);
     }
 }

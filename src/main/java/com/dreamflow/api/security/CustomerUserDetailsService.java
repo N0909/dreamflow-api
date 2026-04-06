@@ -16,6 +16,8 @@ public class CustomerUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         com.dreamflow.api.auth.entity.User user = userRepository.findByEmail(username).orElseThrow(()->new RuntimeException("User Not Found"));
 
-        return User.builder().username(user.getEmail()).password(user.getPassword()).build();
+        UserDetails userDetails = new CustomUserDetails(user.getUserId(), user.getEmail(), user.getPassword());
+
+        return userDetails;
     }
 }

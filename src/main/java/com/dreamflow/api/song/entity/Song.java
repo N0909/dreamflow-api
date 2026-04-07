@@ -1,4 +1,4 @@
-package com.dreamflow.api.songs.entity;
+package com.dreamflow.api.song.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

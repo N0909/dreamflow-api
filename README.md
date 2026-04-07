@@ -1,7 +1,7 @@
 # DreamFlow API
 
 DreamFlow is a backend API for a music streaming platform built with Spring Boot.
-It currently supports user authentication using JWT and follows a clean, modular architecture.
+It provides secure authentication using JWT and supports efficient audio streaming using HTTP Range Requests.
 
 ---
 
@@ -9,8 +9,9 @@ It currently supports user authentication using JWT and follows a clean, modular
 
 * User Signup and Login (`/auth`)
 * JWT-based Authentication
-* Modular Feature-Based Architecture
-* Spring Security Integration
+* Secure API endpoints with Spring Security
+* Audio Streaming with HTTP Range support (seek and buffer)
+* Modular, feature-based architecture
 
 ---
 
@@ -31,6 +32,13 @@ It currently supports user authentication using JWT and follows a clean, modular
 com.dreamflow.api
 │
 ├── auth
+│   ├── controller
+│   ├── service
+│   ├── repository
+│   ├── entity
+│   ├── dto
+│
+├── song
 │   ├── controller
 │   ├── service
 │   ├── repository
@@ -87,10 +95,77 @@ POST `/auth/login`
 1. User signs up or logs in
 2. Server validates credentials
 3. JWT token is generated
-4. Client sends the token in request headers:
+4. Client sends token in header:
 
 ```
 Authorization: Bearer <token>
+```
+
+---
+
+## Song Endpoints
+
+### Get All Songs
+
+GET `/songs`
+
+**Response:**
+
+```json
+[
+  {
+    "songId": 1,
+    "songName": "Song Name",
+    "durationMs": "Artist Name"
+  }
+]
+```
+
+---
+
+### Get Song Metadata
+
+GET `/songs/{id}`
+
+**Response:**
+
+```json
+{
+  "songId": 1,
+  "songName": "Song Name",
+  "duration": 210
+}
+```
+
+---
+
+### Stream Song
+
+GET `/songs/{id}/stream`
+
+**Optional Header:**
+
+```
+Range: bytes=0-
+```
+
+**Behavior:**
+
+* Supports HTTP Range Requests
+* Enables streaming and seeking
+* Optimized for chunk-based delivery
+
+**Response Status:**
+
+* 200 OK (full file)
+* 206 Partial Content (streaming)
+
+**Important Headers:**
+
+```
+Content-Type: audio/mpeg
+Accept-Ranges: bytes
+Content-Range: bytes <start>-<end>/<total>
 ```
 
 ---
@@ -121,17 +196,19 @@ cd dreamflow-api
 ## Current Status
 
 * Authentication module implemented
-* Song and Playlist modules under development
+* Song streaming with Range support implemented
+* Playlist module under development
 
 ---
 
 ## Future Enhancements
 
-* Song management APIs
 * Playlist features
 * Refresh token system
 * Role-based authorization
 * OAuth integration
+* Cloud storage integration (e.g., S3)
+* CDN-based streaming
 
 ---
 

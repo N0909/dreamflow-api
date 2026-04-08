@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 public class JwtService {
@@ -52,8 +53,16 @@ public class JwtService {
         return claims.getSubject();
     }
 
-    public boolean isTokenValid(String token, String subject){
+    public boolean isTokenValid(String token){
+        return !isTokenExpired(token);
+    }
+    public boolean isTokenValid(String token, Object subject){
         final Claims claims = extractAllClaims(token);
         return claims.getSubject().equals(subject) && !isTokenExpired(token);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> resolver){
+        final Claims claims = extractAllClaims(token);
+        return resolver.apply(claims);
     }
 }

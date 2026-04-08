@@ -6,8 +6,10 @@ import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.security.CustomerUserDetailsService;
 import com.dreamflow.api.security.JwtService;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.spel.spi.Function;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,13 +21,23 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomerUserDetailsService userDetailsService;
+    private static final String REFRESH = "refresh";
+    private static final String ACCESS = "access";
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, CustomerUserDetailsService userDetailsService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Transactional
     public LoginResponse signUp(SignupRequest input){
@@ -43,10 +55,13 @@ public class AuthService {
 
         Map<String, Object> claims = Map.of(
                 "userId", createdUser.getUserId(),
-                "type","access"
+                "type",ACCESS
         );
 
-        Map<String, Object> refreshClaims = Map.of("type", "refresh");
+        Map<String, Object> refreshClaims = Map.of(
+                "userId", createdUser.getUserId(),
+                "type", REFRESH
+        );
 
         String accessToken = jwtService.generateToken(claims, createdUser.getEmail(), 15*60*1000);
 
@@ -67,15 +82,43 @@ public class AuthService {
 
         Map<String, Object> claims = Map.of(
                 "userId", userDetails.getUserId(),
-                "type","access"
+                "type",ACCESS
         );
 
-        String accessToken = jwtService.generateToken(claims, userDetails.getEmail(), 15*60*1000);
+        String accessToken = jwtService.generateToken(claims, userDetails.getUsername(), 15*60*1000);
 
-        Map<String, Object> refreshClaims = Map.of("type", "refresh");
+        Map<String, Object> refreshClaims = Map.of(
+                "userId", userDetails.getUserId(),
+                "type", REFRESH
+        );
 
-        String refreshToken = jwtService.generateToken(refreshClaims, userDetails.getEmail(), 7*24*60*60*1000);
+        String refreshToken = jwtService.generateToken(refreshClaims, userDetails.getUsername(), 7*24*60*60*1000);
 
         return new LoginResponse(accessToken, refreshToken);
+    }
+
+    public RefreshResponse generateAccessToken(String refreshToken){
+        String type = jwtService.extractClaim(refreshToken, claims -> claims.get("type", String.class));
+
+        if (!type.equals(REFRESH)){
+            throw new IllegalStateException("Not a Refresh Token");
+        }
+
+        if  (!jwtService.isTokenValid(refreshToken)){
+            throw new IllegalStateException("Token is Invalid");
+        }
+
+        String email = jwtService.extractUsername(refreshToken);
+
+        int userId = jwtService.extractClaim(refreshToken, claims -> claims.get("userId", Integer.class));
+
+        Map<String, Object> claims = Map.of(
+                "userId", userId,
+                "type", "access"
+        );
+
+        String accessToken = jwtService.generateToken(claims, email, 15*60*1000);
+
+        return new RefreshResponse(accessToken);
     }
 }

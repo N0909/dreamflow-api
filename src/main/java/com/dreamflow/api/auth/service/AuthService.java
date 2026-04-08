@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -30,14 +30,6 @@ public class AuthService {
     private final CustomerUserDetailsService userDetailsService;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
-
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, CustomerUserDetailsService userDetailsService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
-    }
 
     @Transactional
     public LoginResponse signUp(SignupRequest input){

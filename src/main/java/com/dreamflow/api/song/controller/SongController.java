@@ -5,6 +5,7 @@ import com.dreamflow.api.song.dto.StreamResponse;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.service.SongService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,8 +23,8 @@ public class SongController {
     private final SongService songService;
 
     @GetMapping()
-    public ResponseEntity<List<SongDTO>> getSongs(){
-        List<SongDTO> songList = songService.getSongs();
+    public ResponseEntity<Page<SongDTO>> getSongs(@RequestParam(name="page_no",defaultValue = "0") int pageNo, @RequestParam(name="page_size",defaultValue = "5") int pageSize){
+        Page<SongDTO> songList = songService.getSongs(pageNo, pageSize);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(songList);
     }
 

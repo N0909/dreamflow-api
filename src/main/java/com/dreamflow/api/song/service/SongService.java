@@ -7,6 +7,9 @@ import com.dreamflow.api.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +27,9 @@ public class SongService {
     private final SongRepository songRepository;
     private final Map<Integer, String> cache = new ConcurrentHashMap<>();
 
-    public List<SongDTO> getSongs(){
-        List<SongDTO> songs = songRepository
-                                .findSongs();
-        return songs;
+    public Page<SongDTO> getSongs(int pageNo, int pageSize){
+        Pageable pageable = PageRequest.of(pageNo,pageSize);
+        return songRepository.findSongs(pageable);
     }
 
     public SongDTO getSong(int songId){

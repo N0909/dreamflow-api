@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -22,6 +25,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private JwtService jwtService;
     @Autowired
     private UserDetailsService userDetailsService;
+    private final String ACCESS = "access";
+    private final Map<String, UserDetails> cache = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -32,8 +37,19 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         String token = authHeader.substring(7);
         try{
+            String type = jwtService.extractClaim(token, claims->claims.get("type")).toString();
+
+            if (!type.equals(ACCESS)){
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             String username = jwtService.extractUsername(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails =
+                    cache.computeIfAbsent(
+                            username,
+                            key->userDetailsService.loadUserByUsername(username)
+                    );
             boolean isValid = jwtService.isTokenValid(token, userDetails.getUsername());
 
             if (!isValid){
@@ -53,4 +69,7 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
     }
+
+    @Scheduled(fixedRate = 300000)
+    public void clearCache(){ cache.clear(); }
 }

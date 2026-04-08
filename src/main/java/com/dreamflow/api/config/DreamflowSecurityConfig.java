@@ -40,6 +40,7 @@ public class DreamflowSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(request->
                         request.requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/songs/**").permitAll()
                                 .anyRequest().authenticated()
                 )

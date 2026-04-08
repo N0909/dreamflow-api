@@ -29,7 +29,13 @@ public class AuthController {
                 .body(response);
     }
 
-
-
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> signin(@RequestBody RefreshRequest request){
+        RefreshResponse refreshResponse = authService.generateAccessToken(request.refreshToken());
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(refreshResponse);
+    }
 
 }

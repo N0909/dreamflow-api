@@ -16,15 +16,13 @@ import java.util.Map;
 public class JwtService {
     @Value("${jwt.secretkey}")
     private String key;
-    @Value("${jwt.expiry}")
-    private int expiry;
 
     private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64URL.decode(key);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Map<String, Object> claims, String subject){
+    public String generateToken(Map<String, Object> claims, String subject, int expiry){
         return Jwts
                 .builder()
                 .claims(claims)

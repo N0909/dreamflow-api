@@ -41,12 +41,18 @@ public class AuthService {
 
         User createdUser = userRepository.save(user);
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", createdUser.getUserId());
+        Map<String, Object> claims = Map.of(
+                "userId", createdUser.getUserId(),
+                "type","access"
+        );
 
-        String token = jwtService.generateToken(claims, createdUser.getEmail());
+        Map<String, Object> refreshClaims = Map.of("type", "refresh");
 
-        return new LoginResponse(token);
+        String accessToken = jwtService.generateToken(claims, createdUser.getEmail(), 15*60*1000);
+
+        String refreshToken = jwtService.generateToken(refreshClaims, createdUser.getEmail(), 7*24*60*60*1000);
+
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public LoginResponse login(LoginRequest input) {
@@ -60,11 +66,16 @@ public class AuthService {
         }
 
         Map<String, Object> claims = Map.of(
-                "userId", userDetails.getUserId()
+                "userId", userDetails.getUserId(),
+                "type","access"
         );
 
-        String token = jwtService.generateToken(claims, userDetails.getUsername());
+        String accessToken = jwtService.generateToken(claims, userDetails.getEmail(), 15*60*1000);
 
-        return new LoginResponse(token);
+        Map<String, Object> refreshClaims = Map.of("type", "refresh");
+
+        String refreshToken = jwtService.generateToken(refreshClaims, userDetails.getEmail(), 7*24*60*60*1000);
+
+        return new LoginResponse(accessToken, refreshToken);
     }
 }

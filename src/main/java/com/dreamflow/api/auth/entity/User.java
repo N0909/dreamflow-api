@@ -27,4 +27,9 @@ public class User {
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Playlist> playlists = new ArrayList<>();
+
+    public void addPlaylist(Playlist playlist){
+        playlist.setUser(this);
+        playlists.add(playlist);
+    }
 }

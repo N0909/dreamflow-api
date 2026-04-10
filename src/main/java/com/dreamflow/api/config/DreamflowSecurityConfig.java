@@ -42,6 +42,7 @@ public class DreamflowSecurityConfig {
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/songs/**").permitAll()
+                                .requestMatchers("/playlists/**").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .build();

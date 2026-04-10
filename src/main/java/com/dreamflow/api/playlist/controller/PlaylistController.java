@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/playlists")
+@RequestMapping("/me/playlists")
 @RequiredArgsConstructor
 public class PlaylistController {
     private final PlaylistService playlistService;

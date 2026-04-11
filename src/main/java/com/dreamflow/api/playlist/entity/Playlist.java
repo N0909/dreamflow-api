@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 @Table(name="playlists")
@@ -22,4 +23,12 @@ public class Playlist {
     private User user;
     @Column(name="created_at")
     private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "playlist", orphanRemoval = true, cascade = CascadeType.REMOVE)
+    private List<PlaylistSong> playlistSongList = new ArrayList<>();
+
+    public void addPlaylistSongList(PlaylistSong playlistSong){
+        playlistSong.setPlaylist(this);
+        playlistSongList.add(playlistSong);
+    }
+
 }

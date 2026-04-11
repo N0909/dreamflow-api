@@ -1,9 +1,12 @@
 package com.dreamflow.api.song.entity;
+import com.dreamflow.api.playlist.entity.PlaylistSong;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="songs")
@@ -23,4 +26,11 @@ public class Song {
     @CreationTimestamp
     @Column(name="created_at")
     private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "song", orphanRemoval = true, cascade = CascadeType.REMOVE)
+    private List<PlaylistSong> playlistSongList = new ArrayList<>();
+
+    public void addPlaylistSong(PlaylistSong playlistSong){
+        playlistSong.setSong(this);
+        playlistSongList.add(playlistSong);
+    }
 }

@@ -1,7 +1,6 @@
 package com.dreamflow.api.playlist.controller;
 
-import com.dreamflow.api.playlist.dto.PlaylistRequest;
-import com.dreamflow.api.playlist.dto.PlaylistResponse;
+import com.dreamflow.api.playlist.dto.*;
 import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.service.PlaylistService;
 import com.dreamflow.api.security.CustomUserDetails;
@@ -23,7 +22,6 @@ import java.util.Objects;
 public class PlaylistController {
     private final PlaylistService playlistService;
 
-
     @PostMapping()
     public ResponseEntity<PlaylistResponse> createPlaylist(@RequestBody PlaylistRequest request){
         CustomUserDetails details = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
@@ -42,5 +40,21 @@ public class PlaylistController {
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(playlistService.getAllPlaylist(details.getUserId()));
+    }
+
+    @PostMapping("/{playlistId}/songs")
+    public ResponseEntity<SongAddedResponse> addSongInPlaylist(@PathVariable("playlistId") int playlistId, @RequestBody AddNewSongRequest songRequest){
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(playlistService.addSongInPlaylist(playlistId, songRequest));
+    }
+
+    @GetMapping("/{playlistId}")
+    public ResponseEntity<PlaylistSongResponse> getPlaylistSongs(@PathVariable("playlistId") int playlistId){
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(playlistService.getPlaylistSongs(playlistId));
     }
 }

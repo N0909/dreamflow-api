@@ -5,6 +5,7 @@ import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.service.PlaylistService;
 import com.dreamflow.api.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,6 +33,13 @@ public class PlaylistController {
                 .body(playlistService.createPlaylist(details.getUserId(), request));
     }
 
+    @PatchMapping("/{playlistId}")
+    public ResponseEntity<PlaylistResponse> updatePlaylist(@PathVariable int playlistId, @RequestBody PlaylistRequest request){
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(playlistService.updatePlaylistDetails(playlistId, request));
+    }
+
     @GetMapping()
     public ResponseEntity<List<PlaylistResponse>> getAllPlaylist(){
         CustomUserDetails details = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
@@ -56,5 +64,11 @@ public class PlaylistController {
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(playlistService.getPlaylistSongs(playlistId));
+    }
+
+    @DeleteMapping("/{playlistId}/songs/{songId}")
+    public ResponseEntity<Void> deleteSongFromPlaylist(@PathVariable("playlistId") int playlistId, @PathVariable("songId") int songId){
+        playlistService.deletePlaylistSong(playlistId, songId);
+        return ResponseEntity.noContent().build();
     }
 }

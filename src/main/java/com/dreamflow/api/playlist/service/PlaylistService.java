@@ -26,6 +26,7 @@ public class PlaylistService {
     private final PlaylistSongRepository playlistSongRepository;
     private final SongRepository songRepository;
 
+
     @Transactional
     public PlaylistResponse createPlaylist(int userId, PlaylistRequest request){
         User user = userRepository.findById(userId).orElseThrow(()->new IllegalStateException("User with Id Not Found"));
@@ -38,6 +39,15 @@ public class PlaylistService {
         Playlist createdPlaylist = playlistRepository.save(playlist);
 
         return new PlaylistResponse(createdPlaylist.getPlaylistId(), createdPlaylist.getPlaylistName(),playlist.getCreatedAt());
+    }
+
+    @Transactional
+    public PlaylistResponse updatePlaylistDetails(int playlistId, PlaylistRequest request){
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new IllegalStateException("Not Found"));
+
+        playlist.setPlaylistName(request.playlistName());
+
+        return new PlaylistResponse(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getCreatedAt());
     }
 
     public List<PlaylistResponse> getAllPlaylist(int userId){
@@ -90,4 +100,17 @@ public class PlaylistService {
                  songs
          );
     }
+
+    @Transactional
+    public void deletePlaylistSong(int playlistId, int songId){
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new IllegalStateException("Not Found"));
+
+        boolean isRemoved = playlist.getPlaylistSongList()
+                .removeIf(play -> play.getSong().getSongId()==songId);
+
+        if (!isRemoved){
+            throw new IllegalStateException("Not Found in playlist");
+        }
+    }
+
 }

@@ -31,4 +31,8 @@ public class Playlist {
         playlistSongList.add(playlistSong);
     }
 
+    public List<PlaylistSong> getPlaylistSongList(){
+        return this.playlistSongList;
+    }
+
 }

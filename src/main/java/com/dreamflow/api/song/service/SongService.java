@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SongService {
     private final SongRepository songRepository;
-    private final Map<Integer, String> cache = new ConcurrentHashMap<>();
+    private final Map<Integer, String> cache = Collections.synchronizedMap(new LinkedHashMap<>(10));
 
     public Page<SongDTO> getSongs(int pageNo, int pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
@@ -79,11 +81,5 @@ public class SongService {
 
             return new StreamResponse(byteArrayResource, start, end, fileLength, true);
         }
-    }
-
-    // for clearing cache after 10 mins
-    @Scheduled(fixedRate = 600000)
-    public void clearCache(){
-        cache.clear();
     }
 }

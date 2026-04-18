@@ -1,5 +1,6 @@
 package com.dreamflow.api.security;
 
+import com.dreamflow.api.util.LRUCache;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,11 +28,15 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
     private final String ACCESS = "access";
-    private final Map<String, UserDetails> cache = new ConcurrentHashMap<>();
+    private final Map<String, UserDetails> cache = Collections.synchronizedMap(new LRUCache<>(100));
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
+        if (request.getServletPath().equals("/auth/refresh")){
+            filterChain.doFilter(request, response);
+            return;
+        }
         if (authHeader==null || !authHeader.startsWith("Bearer ")){
             filterChain.doFilter(request, response);
             return;
@@ -69,7 +75,4 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
     }
-
-    @Scheduled(fixedRate = 300000)
-    public void clearCache(){ cache.clear(); }
 }

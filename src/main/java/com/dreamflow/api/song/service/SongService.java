@@ -1,5 +1,6 @@
 package com.dreamflow.api.song.service;
 
+import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
 import com.dreamflow.api.song.entity.Song;
@@ -36,7 +37,7 @@ public class SongService {
 
     public SongDTO getSong(int songId){
         SongDTO song = songRepository.findSongById(songId).orElseThrow(
-                ()->new IllegalStateException("Song with id "+songId+" doesn't exist"));
+                ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
         return song;
     }
 
@@ -45,7 +46,7 @@ public class SongService {
                 songId,
                 key->
                 songRepository.findById(songId).orElseThrow(
-                        ()->new IllegalStateException("Song with id "+songId+" doesn't exist")
+                        ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
             ).getSongPath()
         );
 

@@ -30,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> signin(@RequestBody RefreshRequest request){
+    public ResponseEntity<RefreshResponse> refreshToken(@RequestBody RefreshRequest request){
         RefreshResponse refreshResponse = authService.generateAccessToken(request.refreshToken());
         return ResponseEntity
                 .ok()

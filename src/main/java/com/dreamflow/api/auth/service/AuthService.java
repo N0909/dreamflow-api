@@ -3,16 +3,20 @@ package com.dreamflow.api.auth.service;
 import com.dreamflow.api.auth.dto.*;
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
+import com.dreamflow.api.exception.exceptions.IllegalAuthException;
+import com.dreamflow.api.exception.exceptions.IllegalTokenException;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.security.CustomerUserDetailsService;
 import com.dreamflow.api.security.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.spel.spi.Function;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,7 +38,7 @@ public class AuthService {
     @Transactional
     public LoginResponse signUp(SignupRequest input){
         if(userRepository.existsByEmail(input.email())){
-            throw new IllegalStateException("Email already in use");
+            throw new IllegalAuthException("Email already in use");
         }
 
         User user = new User();
@@ -63,13 +67,18 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest input) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.email(), input.password())
-        );
+        Authentication authentication;
+        try{
+            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.email(), input.password())
+            );
+        }catch(AuthenticationException ex){
+            throw new IllegalAuthException("Bad Credentials");
+        }
 
         Object principal = authentication.getPrincipal();
 
         if (!(principal instanceof CustomUserDetails userDetails)){
-            throw new IllegalStateException("Invalid authentication principal");
+            throw new IllegalAuthException("Invalid authentication principal");
         }
 
         Map<String, Object> claims = Map.of(
@@ -90,14 +99,15 @@ public class AuthService {
     }
 
     public RefreshResponse generateAccessToken(String refreshToken){
-        String type = jwtService.extractClaim(refreshToken, claims -> claims.get("type", String.class));
-
-        if (!type.equals(REFRESH)){
-            throw new IllegalStateException("Not a Refresh Token");
+        String type;
+        try{
+             type = jwtService.extractClaim(refreshToken, claims -> claims.get("type", String.class));
+        }catch(SignatureException ex){
+            throw new IllegalTokenException("Token is Invalid");
         }
 
-        if  (!jwtService.isTokenValid(refreshToken)){
-            throw new IllegalStateException("Token is Invalid");
+        if (!type.equals(REFRESH)){
+            throw new IllegalTokenException("Not a Refresh Token");
         }
 
         String email = jwtService.extractUsername(refreshToken);

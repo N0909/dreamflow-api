@@ -1,5 +1,6 @@
 package com.dreamflow.api.song.service;
 
+import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
 import com.dreamflow.api.song.entity.Song;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SongService {
     private final SongRepository songRepository;
-    private final Map<Integer, String> cache = new ConcurrentHashMap<>();
+    private final Map<Integer, String> cache = Collections.synchronizedMap(new LinkedHashMap<>(10));
 
     public Page<SongDTO> getSongs(int pageNo, int pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
@@ -34,7 +37,7 @@ public class SongService {
 
     public SongDTO getSong(int songId){
         SongDTO song = songRepository.findSongById(songId).orElseThrow(
-                ()->new IllegalStateException("Song with id "+songId+" doesn't exist"));
+                ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
         return song;
     }
 
@@ -43,7 +46,7 @@ public class SongService {
                 songId,
                 key->
                 songRepository.findById(songId).orElseThrow(
-                        ()->new IllegalStateException("Song with id "+songId+" doesn't exist")
+                        ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
             ).getSongPath()
         );
 
@@ -79,11 +82,5 @@ public class SongService {
 
             return new StreamResponse(byteArrayResource, start, end, fileLength, true);
         }
-    }
-
-    // for clearing cache after 10 mins
-    @Scheduled(fixedRate = 600000)
-    public void clearCache(){
-        cache.clear();
     }
 }

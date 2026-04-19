@@ -1,5 +1,6 @@
 package com.dreamflow.api.config;
 
+import com.dreamflow.api.security.CustomAuthResponse;
 import com.dreamflow.api.security.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
@@ -43,6 +44,9 @@ public class DreamflowSecurityConfig {
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/songs/**").permitAll()
                                 .anyRequest().authenticated()
+                ).exceptionHandling(ex->ex.authenticationEntryPoint(
+                        new CustomAuthResponse()
+                    )
                 )
                 .build();
     }

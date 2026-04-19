@@ -2,6 +2,7 @@ package com.dreamflow.api.playlist.service;
 
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
+import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.playlist.dto.*;
 import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.entity.PlaylistSong;
@@ -29,7 +30,7 @@ public class PlaylistService {
 
     @Transactional
     public PlaylistResponse createPlaylist(int userId, PlaylistRequest request){
-        User user = userRepository.findById(userId).orElseThrow(()->new IllegalStateException("User with Id Not Found"));
+        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User with Id " + userId + " Not Found"));
 
         Playlist playlist = new Playlist();
         playlist.setPlaylistName(request.playlistName());
@@ -43,7 +44,7 @@ public class PlaylistService {
 
     @Transactional
     public PlaylistResponse updatePlaylistDetails(int playlistId, PlaylistRequest request){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new IllegalStateException("Not Found"));
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Not Found"));
 
         playlist.setPlaylistName(request.playlistName());
 
@@ -58,9 +59,9 @@ public class PlaylistService {
 
     @Transactional
     public SongAddedResponse addSongInPlaylist(int playlistId, AddNewSongRequest songRequest){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new IllegalStateException("Playlist Not Found"));
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
 
-        Song song = songRepository.findById(songRequest.songId()).orElseThrow(()->new IllegalStateException("Song not found"));
+        Song song = songRepository.findById(songRequest.songId()).orElseThrow(()->new ResourceNotFoundException("Song not found"));
 
         PlaylistSong playlistSong = new PlaylistSong();
 
@@ -103,13 +104,13 @@ public class PlaylistService {
 
     @Transactional
     public void deletePlaylistSong(int playlistId, int songId){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new IllegalStateException("Not Found"));
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
 
         boolean isRemoved = playlist.getPlaylistSongList()
                 .removeIf(play -> play.getSong().getSongId()==songId);
 
         if (!isRemoved){
-            throw new IllegalStateException("Not Found in playlist");
+            throw new ResourceNotFoundException("Song With Id "+ songId + " Not Found in playlist");
         }
     }
 

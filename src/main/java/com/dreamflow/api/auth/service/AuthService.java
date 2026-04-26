@@ -6,18 +6,15 @@ import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.exception.exceptions.IllegalAuthException;
 import com.dreamflow.api.exception.exceptions.IllegalTokenException;
 import com.dreamflow.api.security.CustomUserDetails;
-import com.dreamflow.api.security.CustomerUserDetailsService;
+import com.dreamflow.api.security.CustomeUserDetailsService;
 import com.dreamflow.api.security.JwtService;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.spel.spi.Function;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final CustomerUserDetailsService userDetailsService;
+    private final CustomeUserDetailsService userDetailsService;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
 

@@ -1,4 +1,6 @@
 package com.dreamflow.api.song.dto;
 
-public record SongDTO(int songId, String songName, long durationMs) {
+import java.io.Serializable;
+
+public record SongDTO(int songId, String songName, long durationMs) implements Serializable {
 }

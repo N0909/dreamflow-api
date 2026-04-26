@@ -4,10 +4,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, Serializable {
     private int userId;
     private String email;
     private String password;
@@ -36,4 +37,5 @@ public class CustomUserDetails implements UserDetails {
     public int getUserId(){
         return userId;
     }
+
 }

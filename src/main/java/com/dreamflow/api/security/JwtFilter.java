@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -27,8 +29,10 @@ public class JwtFilter extends OncePerRequestFilter {
     private JwtService jwtService;
     @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     private final String ACCESS = "access";
-    private final Map<String, UserDetails> cache = Collections.synchronizedMap(new LRUCache<>(100));
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -51,11 +55,8 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             String username = jwtService.extractUsername(token);
-            UserDetails userDetails =
-                    cache.computeIfAbsent(
-                            username,
-                            key->userDetailsService.loadUserByUsername(username)
-                    );
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
             boolean isValid = jwtService.isTokenValid(token, userDetails.getUsername());
 
             if (!isValid){

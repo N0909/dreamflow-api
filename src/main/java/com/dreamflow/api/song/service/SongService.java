@@ -5,12 +5,16 @@ import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.repository.SongRepository;
+import com.dreamflow.api.util.LRUCache;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,32 +27,45 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class SongService {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     private final SongRepository songRepository;
-    private final Map<Integer, String> cache = Collections.synchronizedMap(new LinkedHashMap<>(10));
+//    private final Map<Integer, String> cache = Collections.synchronizedMap(new LRUCache<>(100));
 
     public Page<SongDTO> getSongs(int pageNo, int pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
         return songRepository.findSongs(pageable);
     }
 
+    @Cacheable(value="song", key="#songId")
     public SongDTO getSong(int songId){
         SongDTO song = songRepository.findSongById(songId).orElseThrow(
                 ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
         return song;
     }
 
+    private String getSongPath(int songId){
+        // First Search in the Redis Cache
+        Object path= stringRedisTemplate.opsForValue().get("songPath::"+songId);
+
+        if (path==null){ // If Cache miss
+            // Fetch from db
+            path = songRepository.findById(songId).orElseThrow(
+                    () -> new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
+            ).getSongPath();
+            // store in cache for 120 seconds
+            stringRedisTemplate.opsForValue().set("songPath::"+songId,(String) path, 120, TimeUnit.SECONDS);
+        }
+        return (String) path;
+    }
+
     public StreamResponse streamSong(int songId, String rangeHeader) throws IOException {
-        String songPath = cache.computeIfAbsent(
-                songId,
-                key->
-                songRepository.findById(songId).orElseThrow(
-                        ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
-            ).getSongPath()
-        );
+        String songPath = getSongPath(songId);
 
         File file = new File(songPath);
         long fileLength = file.length();
@@ -60,6 +77,7 @@ public class SongService {
         }
         String range = rangeHeader.replace("bytes=", "");
         String[] parts = range.split("-");
+
         // Case 2: Range Present
         long start = Long.parseLong(parts[0]);
         long end;

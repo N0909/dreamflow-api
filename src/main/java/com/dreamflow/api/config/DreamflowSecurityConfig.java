@@ -2,6 +2,7 @@ package com.dreamflow.api.config;
 
 import com.dreamflow.api.security.CustomAuthResponse;
 import com.dreamflow.api.security.JwtFilter;
+import com.dreamflow.api.security.RateLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,14 +32,16 @@ public class DreamflowSecurityConfig {
     private UserDetailsService userDetailsService;
     @Autowired
     private JwtFilter jwtFilter;
-
+    @Autowired
+    private RateLimit rateLimit;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http){
         return http.sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimit, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtFilter, RateLimit.class)
                 .authorizeHttpRequests(request->
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/songs/**").permitAll()

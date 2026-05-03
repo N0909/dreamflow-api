@@ -1,5 +1,6 @@
 package com.dreamflow.api.auth.entity;
 import com.dreamflow.api.playlist.entity.Playlist;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,6 +26,11 @@ public class User {
     @Column(name="created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(name="user_role", nullable = false)
+    private Role role;
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Playlist> playlists = new ArrayList<>();
 

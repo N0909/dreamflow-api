@@ -2,7 +2,6 @@ package com.dreamflow.api.song.controller;
 
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
-import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,11 +9,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.util.List;
+
 
 @RestController
 @RequestMapping("/songs")

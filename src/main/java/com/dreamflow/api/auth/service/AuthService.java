@@ -1,6 +1,7 @@
 package com.dreamflow.api.auth.service;
 
 import com.dreamflow.api.auth.dto.*;
+import com.dreamflow.api.auth.entity.Role;
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.exception.exceptions.IllegalAuthException;
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +33,29 @@ public class AuthService {
     private final CustomeUserDetailsService userDetailsService;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
+    private Set<Role> allowedRoles = Set.of(Role.USER, Role.ARTIST);
 
     @Transactional
     public LoginResponse signUp(SignupRequest input){
+
+        if (input.username()==null || input.email()==null || input.password()==null || input.role()==null){
+            throw new IllegalAuthException("Invalid Request");
+        }
+
+        if (input.username().isBlank() || input.email().isBlank() || input.password().isBlank()){
+            throw new IllegalAuthException("A field is blank or only contains spaces");
+        }
+
+        if (!input.email().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")){
+            throw new IllegalAuthException("Invalid Email");
+        }
+
+        if (!allowedRoles.contains(input.role())) {
+            throw new IllegalAuthException(
+                    "Invalid role"
+            );
+        }
+
         if(userRepository.existsByEmail(input.email())){
             throw new IllegalAuthException("Email already in use");
         }
@@ -43,12 +65,14 @@ public class AuthService {
         user.setEmail(input.email());
         user.setPassword(passwordEncoder.encode(input.password()));
         user.setCreatedAt(LocalDateTime.now());
+        user.setRole(input.role());
 
         User createdUser = userRepository.save(user);
 
         Map<String, Object> claims = Map.of(
                 "userId", createdUser.getUserId(),
-                "type",ACCESS
+                "type",ACCESS,
+                "role", "ROLE_"+createdUser.getRole()
         );
 
         Map<String, Object> refreshClaims = Map.of(
@@ -64,9 +88,23 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest input) {
+
+        if (input.email()==null || input.password()==null){
+            throw new IllegalAuthException("A Field is null or Wrong Request Body");
+        }
+
+        if (input.email().isBlank() || input.password().isBlank()){
+            throw new IllegalAuthException("A field is blank or only contains spaces");
+        }
+
         Authentication authentication;
+
         try{
-            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.email(), input.password())
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            input.email(),
+                            input.password()
+                    )
             );
         }catch(AuthenticationException ex){
             throw new IllegalAuthException("Bad Credentials");
@@ -80,6 +118,9 @@ public class AuthService {
 
         Map<String, Object> claims = Map.of(
                 "userId", userDetails.getUserId(),
+                "role", userDetails.getAuthorities()
+                            .stream()
+                            .findFirst().map(GrantedAuthority::getAuthority).orElse("ROLE_USER"),
                 "type",ACCESS
         );
 
@@ -96,6 +137,15 @@ public class AuthService {
     }
 
     public RefreshResponse generateAccessToken(String refreshToken){
+
+        if (refreshToken==null){
+            throw new IllegalTokenException("Token is Invalid");
+        }
+
+        if (refreshToken.isBlank()){
+            throw new IllegalTokenException("Token is Invalid");
+        }
+
         String type;
         try{
              type = jwtService.extractClaim(refreshToken, claims -> claims.get("type", String.class));
@@ -107,13 +157,26 @@ public class AuthService {
             throw new IllegalTokenException("Not a Refresh Token");
         }
 
+        if (jwtService.isTokenExpired(refreshToken)){
+            throw new IllegalTokenException("Provided token is expired");
+        }
+
         String email = jwtService.extractUsername(refreshToken);
+
+        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+
+        if (!jwtService.isTokenValid(refreshToken,userDetails)){
+            throw new IllegalTokenException("Token is Invalid");
+        }
 
         int userId = jwtService.extractClaim(refreshToken, claims -> claims.get("userId", Integer.class));
 
         Map<String, Object> claims = Map.of(
                 "userId", userId,
-                "type", "access"
+                "role",userDetails.getAuthorities()
+                        .stream()
+                        .findFirst().map(GrantedAuthority::getAuthority).orElse("ROLE_USER"),
+                "type", ACCESS
         );
 
         String accessToken = jwtService.generateToken(claims, email, 15*60*1000);

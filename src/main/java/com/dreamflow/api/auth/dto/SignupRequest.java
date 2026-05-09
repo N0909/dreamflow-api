@@ -1,4 +1,6 @@
 package com.dreamflow.api.auth.dto;
 
-public record SignupRequest(String username, String email, String password) {
+import com.dreamflow.api.auth.entity.Role;
+
+public record SignupRequest(String username, String email, String password, Role role) {
 }

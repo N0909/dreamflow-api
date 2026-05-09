@@ -44,7 +44,7 @@ public class JwtService {
                 .getPayload();
     }
 
-    private boolean isTokenExpired(String token){
+    public boolean isTokenExpired(String token){
         final Claims claims = extractAllClaims(token);
         return claims.getExpiration().before(new Date(System.currentTimeMillis()));
     }

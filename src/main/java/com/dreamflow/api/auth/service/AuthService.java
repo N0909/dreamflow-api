@@ -1,6 +1,7 @@
 package com.dreamflow.api.auth.service;
 
 import com.dreamflow.api.auth.dto.*;
+import com.dreamflow.api.auth.entity.Role;
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.exception.exceptions.IllegalAuthException;
@@ -32,9 +33,11 @@ public class AuthService {
     private final CustomeUserDetailsService userDetailsService;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
+    private Set<Role> allowedRoles = Set.of(Role.USER, Role.ARTIST);
 
     @Transactional
     public LoginResponse signUp(SignupRequest input){
+
         if (input.username()==null || input.email()==null || input.password()==null || input.role()==null){
             throw new IllegalAuthException("Invalid Request");
         }
@@ -45,6 +48,12 @@ public class AuthService {
 
         if (!input.email().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")){
             throw new IllegalAuthException("Invalid Email");
+        }
+
+        if (!allowedRoles.contains(input.role())) {
+            throw new IllegalAuthException(
+                    "Invalid role"
+            );
         }
 
         if(userRepository.existsByEmail(input.email())){
@@ -91,10 +100,13 @@ public class AuthService {
         Authentication authentication;
 
         try{
-            authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(input.email(), input.password())
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            input.email(),
+                            input.password()
+                    )
             );
         }catch(AuthenticationException ex){
-            ex.printStackTrace();
             throw new IllegalAuthException("Bad Credentials");
         }
 
@@ -125,6 +137,7 @@ public class AuthService {
     }
 
     public RefreshResponse generateAccessToken(String refreshToken){
+
         if (refreshToken==null){
             throw new IllegalTokenException("Token is Invalid");
         }
@@ -142,6 +155,10 @@ public class AuthService {
 
         if (!type.equals(REFRESH)){
             throw new IllegalTokenException("Not a Refresh Token");
+        }
+
+        if (jwtService.isTokenExpired(refreshToken)){
+            throw new IllegalTokenException("Provided token is expired");
         }
 
         String email = jwtService.extractUsername(refreshToken);

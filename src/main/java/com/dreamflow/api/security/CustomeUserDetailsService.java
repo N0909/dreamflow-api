@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class CustomeUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
     @Override
-    @Cacheable(value="user", key="#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         com.dreamflow.api.auth.entity.User user = userRepository.findByEmail(username).orElseThrow(()->new RuntimeException("User Not Found"));
 

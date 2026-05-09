@@ -1,6 +1,7 @@
 package com.dreamflow.api.auth.controller;
 import com.dreamflow.api.auth.dto.*;
 import com.dreamflow.api.auth.service.AuthService;
+import com.dreamflow.api.util.service.email.AsyncEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final AsyncEmailService emailService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<LoginResponse> signup(@RequestBody SignupRequest request){
         LoginResponse response = authService.signUp(request);
+
+        emailService.sendWelcomeEmail(request.email(), request.email());
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -23,6 +28,9 @@ public class AuthController {
     @PostMapping("/sign-in")
     public ResponseEntity<LoginResponse> signin(@RequestBody LoginRequest request){
         LoginResponse response = authService.login(request);
+
+        emailService.sendWelcomeEmail(request.email(), request.email());
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .contentType(MediaType.APPLICATION_JSON)

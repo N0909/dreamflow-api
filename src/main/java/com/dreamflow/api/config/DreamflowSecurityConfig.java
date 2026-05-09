@@ -48,6 +48,7 @@ public class DreamflowSecurityConfig {
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/songs/**").permitAll()
                                 .requestMatchers("/me/**").authenticated()
+                                .requestMatchers("/home/**").authenticated()
                                 .requestMatchers(
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",

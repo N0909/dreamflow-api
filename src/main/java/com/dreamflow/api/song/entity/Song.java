@@ -28,6 +28,12 @@ public class Song {
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "song", orphanRemoval = true, cascade = CascadeType.REMOVE)
     private List<PlaylistSong> playlistSongList = new ArrayList<>();
+    @OneToOne(mappedBy = "song")
+    private SongMetadata songMetadata;
+    @Column(name="stream_status")
+    private UploadStatus uploadStatus;
+    @Column(name="job_id")
+    private String jobId;
 
     public void addPlaylistSong(PlaylistSong playlistSong){
         playlistSong.setSong(this);

@@ -1,7 +1,7 @@
-package com.dreamflow.api.song.entity;
+    package com.dreamflow.api.song.entity;
 
-public enum UploadStatus {
-    INPROCESS,
-    COMPLETED,
-    FAILED
-}
+    public enum UploadStatus {
+        INPROCESS,
+        COMPLETED,
+        FAILED
+    }

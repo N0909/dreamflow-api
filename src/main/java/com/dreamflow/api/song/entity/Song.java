@@ -30,10 +30,13 @@ public class Song {
     private List<PlaylistSong> playlistSongList = new ArrayList<>();
     @OneToOne(mappedBy = "song")
     private SongMetadata songMetadata;
+    @Enumerated(EnumType.STRING)
     @Column(name="stream_status")
     private UploadStatus uploadStatus;
-    @Column(name="job_id")
+    @Column(name="job_id", unique=true, nullable = false)
     private String jobId;
+    @Column(name="reason_for_failure")
+    private String FailReason;
 
     public void addPlaylistSong(PlaylistSong playlistSong){
         playlistSong.setSong(this);

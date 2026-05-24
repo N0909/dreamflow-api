@@ -1,0 +1,165 @@
+package com.dreamflow.api.media.service;
+import com.dreamflow.api.exception.exceptions.*;
+import com.dreamflow.api.song.entity.Song;
+import com.dreamflow.api.song.entity.UploadStatus;
+import com.dreamflow.api.song.repository.SongRepository;
+import com.dreamflow.api.storage.service.StorageService;
+import lombok.RequiredArgsConstructor;
+import org.apache.tika.Tika;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import xyz.capybara.clamav.ClamavClient;
+import xyz.capybara.clamav.commands.scan.result.ScanResult;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+
+@Service
+@RequiredArgsConstructor
+public class MediaProcessService {
+    private final ExecutorService executorService;
+    private final Tika tika;
+    private final ClamavClient clamavClient;
+    private final StorageService storageService;
+    private final SongRepository songRepository;
+
+    @Async("mediaProcessingExecutor")
+    public void processUpload(String jobId, Path tempFile){
+            Song song = songRepository.findByJobId(jobId).orElseThrow(()->new ResourceNotFoundException("not found"));
+            File file = null;
+            try{
+                validateMimeType(tempFile);
+                scanForVirus(tempFile);
+                file = convertToMp3(jobId,tempFile);
+                String path = storageService.storeAudioFile(jobId, file);
+
+                song.setSongPath(path);
+                song.setUploadStatus(UploadStatus.COMPLETED);
+
+                songRepository.save(song);
+            }catch (IllegalMimeTypeException exception){
+                markFailed(song, "invalid audio format");
+            }catch (VirusDetectedException exception){
+                markFailed(song, "file contains viruses");
+            }catch (AudioConversionException exception){
+                markFailed(song, "failed to convert file");
+            }catch(StorageException exception){
+                markFailed(song, "failed to store file");
+            }
+            catch (Exception exception) {
+                exception.printStackTrace();
+                markFailed(song, "internal processing failed");
+            }finally {
+                if (file != null && file.exists()) {
+                    file.delete();
+                }
+            }
+    }
+
+    private void validateMimeType(Path tempFile) {
+        try{
+            File songFile = new File(tempFile.toUri());
+            String detectedType = tika.detect(songFile);
+
+            if (!detectedType.startsWith("audio/")){
+                throw new IllegalMimeTypeException("Invalid file type");
+            }
+        }catch (IOException exception){
+            exception.printStackTrace();
+            throw new FileProcessingException("Failed to read file");
+        }
+    }
+
+    private void scanForVirus(Path tempFile) {
+        ScanResult scanResult;
+
+        try (FileInputStream songFile = new FileInputStream(tempFile.toFile())) {
+            scanResult = clamavClient.scan(songFile);
+        } catch (IOException e) {
+            throw new FileProcessingException("Failed to read file for virus scan");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new VirusScanUnavailableException("Virus scan service unavailable");
+        }
+
+        if (scanResult instanceof ScanResult.VirusFound){
+            throw new VirusDetectedException("uploaded file contains virus");
+        }
+
+        if (!(scanResult instanceof ScanResult.OK)){
+            throw new VirusScanUnavailableException("Virus scan service unavailable");
+        }
+    }
+
+    private File convertToMp3(String jobId, Path songPath){
+        Path inputPath = null;
+        Path outputPath = null;
+        try {
+            inputPath = Files.createTempFile(
+                    jobId,
+                    ".tmp"
+            );
+
+            Files.copy(
+                    songPath,
+                    inputPath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            outputPath = Files.createTempFile(
+                    jobId,
+                    ".mp3"
+            );
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    inputPath.toString(),
+                    "-vn",
+                    "-ar",
+                    "44100",
+                    "-ac",
+                    "2",
+                    "-b:a",
+                    "192k",
+                    outputPath.toString()
+            );
+
+            processBuilder.redirectErrorStream(true);
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+
+            if (exitCode !=0 ){
+                throw new AudioConversionException(
+                        "File conversion failed"
+                );
+            }
+
+            return outputPath.toFile();
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new FileProcessingException("Failed to read file");
+        } finally {
+            if (inputPath!=null){
+                try{
+                    Files.deleteIfExists(inputPath);
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    private void markFailed(Song song,String message){
+        song.setUploadStatus(UploadStatus.FAILED);
+        song.setFailReason(message);
+        songRepository.save(song);
+    }
+}

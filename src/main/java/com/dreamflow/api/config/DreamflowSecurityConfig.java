@@ -42,8 +42,8 @@ public class DreamflowSecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .addFilterBefore(rateLimit, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtFilter, RateLimit.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+//                .addFilterAfter(jwtFilter, RateLimit.class)
                 .authorizeHttpRequests(request->
                         request.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/songs/**").permitAll()
@@ -52,7 +52,9 @@ public class DreamflowSecurityConfig {
                                 .requestMatchers(
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
-                                        "/swagger-ui.html"
+                                        "/swagger-ui.html",
+                                        "/upload",
+                                        "/upload/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )

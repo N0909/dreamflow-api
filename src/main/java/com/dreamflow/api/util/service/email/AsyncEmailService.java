@@ -8,10 +8,12 @@ import java.util.concurrent.ExecutorService;
 
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class AsyncEmailService {
 
     private final ExecutorService executorService;
     private final EmailService emailService;
+
 
     public CompletableFuture<Void> sendWelcomeEmail(String email, String username){
         return CompletableFuture.runAsync(()->{

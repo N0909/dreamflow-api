@@ -1,11 +1,11 @@
 package com.dreamflow.api.exception;
-import com.dreamflow.api.exception.exceptions.IllegalAuthException;
-import com.dreamflow.api.exception.exceptions.IllegalTokenException;
-import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
+import com.dreamflow.api.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.io.File;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,4 +24,29 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleIllegalMimeTypeException(IllegalMimeTypeException e){
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    public ResponseEntity<ErrorResponse> handleVirusDetectedException(VirusDetectedException e){
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleAudioConversionException(AudioConversionException e){
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleFileProcessingException(FileProcessingException e){
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleStorageException(StorageException e){
+        ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

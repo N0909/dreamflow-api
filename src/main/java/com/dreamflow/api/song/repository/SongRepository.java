@@ -17,4 +17,5 @@ public interface SongRepository extends JpaRepository<Song, Integer> {
     Page<SongDTO> findSongs(Pageable pageable);
     @Query("SELECT new com.dreamflow.api.song.dto.SongDTO(s.songId, s.songName, s.durationMs) FROM Song s WHERE s.songId=:songId")
     Optional<SongDTO> findSongById(int songId);
+    Optional<Song> findByJobId(String jobId);
 }

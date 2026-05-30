@@ -12,18 +12,11 @@ public class EmailService {
     private JavaMailSender javaMailSender;
 
     @Async("emailExecutor")
-    public void sendWelcomeMail(String toEmail, String username){
+    public void sendMail(String toEmail, String subject , String text){
         SimpleMailMessage message = new SimpleMailMessage();
 
-        String text = "Hello " + username + ",\n\n" +
-                "Welcome to DreamFlow Music Streaming Platform!\n\n" +
-                "This is a test welcome email for our application. " +
-                "If you received this message by mistake, please feel free to ignore it.\n\n" +
-                "Enjoy the music!\n" +
-                "- DreamFlow Team";
-
         message.setTo(toEmail);
-        message.setSubject("Welcome to Dreamflow Backend Api");
+        message.setSubject(subject);
         message.setText(text);
 
         javaMailSender.send(message);

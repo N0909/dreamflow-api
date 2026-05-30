@@ -9,6 +9,7 @@ import com.dreamflow.api.exception.exceptions.IllegalTokenException;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.security.CustomeUserDetailsService;
 import com.dreamflow.api.security.JwtService;
+import com.dreamflow.api.util.service.email.EmailService;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomeUserDetailsService userDetailsService;
+    private final EmailService emailService;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
     private Set<Role> allowedRoles = Set.of(Role.USER, Role.ARTIST);
@@ -83,6 +85,17 @@ public class AuthService {
         String accessToken = jwtService.generateToken(claims, createdUser.getEmail(), 15*60*1000);
 
         String refreshToken = jwtService.generateToken(refreshClaims, createdUser.getEmail(), 7*24*60*60*1000);
+
+        String welcomeText = "Hello " + input.username() + ",\n\n" +
+                "Welcome to DreamFlow Music Streaming Platform!\n\n" +
+                "This is a test welcome email for our application. " +
+                "If you received this message by mistake, please feel free to ignore it.\n\n" +
+                "Enjoy the music!\n" +
+                "- DreamFlow Team";
+
+        String subject = "Welcome to Dreamflow.";
+
+        emailService.sendMail(input.email(), subject, welcomeText);
 
         return new LoginResponse(accessToken, refreshToken);
     }

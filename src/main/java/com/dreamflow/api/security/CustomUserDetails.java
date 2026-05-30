@@ -12,12 +12,14 @@ import java.util.List;
 
 public class CustomUserDetails implements UserDetails, Serializable {
     private int userId;
+    private String username;
     private String email;
     private String password;
     private Role role;
 
-    public CustomUserDetails(int userId, String email, String password, Role role){
+    public CustomUserDetails(int userId, String username, String email, String password, Role role){
         this.userId=userId;
+        this.username = username;
         this.email=email;
         this.password=password;
         this.role = role;
@@ -43,5 +45,6 @@ public class CustomUserDetails implements UserDetails, Serializable {
     public int getUserId(){
         return userId;
     }
+    public String getName() { return username;}
 
 }

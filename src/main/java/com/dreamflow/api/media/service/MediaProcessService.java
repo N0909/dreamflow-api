@@ -1,5 +1,6 @@
 package com.dreamflow.api.media.service;
 import com.dreamflow.api.exception.exceptions.*;
+import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.entity.UploadStatus;
 import com.dreamflow.api.song.repository.SongRepository;
@@ -7,6 +8,8 @@ import com.dreamflow.api.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import xyz.capybara.clamav.ClamavClient;
 import xyz.capybara.clamav.commands.scan.result.ScanResult;
@@ -14,7 +17,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 @Service
@@ -25,9 +27,10 @@ public class MediaProcessService {
     private final ClamavClient clamavClient;
     private final StorageService storageService;
     private final SongRepository songRepository;
+    private final NotificationService notificationService;
 
     @Async("mediaProcessingExecutor")
-    public void processUpload(String jobId, Path tempFile){
+    public void processUpload(String jobId, Path tempFile, CustomUserDetails userDetails){
             Song song = songRepository.findByJobId(jobId).orElseThrow(()->new ResourceNotFoundException("not found"));
             File file = null;
             try{
@@ -40,18 +43,27 @@ public class MediaProcessService {
                 song.setUploadStatus(UploadStatus.COMPLETED);
 
                 songRepository.save(song);
+
+                // getUsername is actually email here
+                // getName is the real username
+                notificationService.notifySuccess(userDetails.getUserId(), userDetails.getName(), userDetails.getUsername(), song.getSongName());
+
             }catch (IllegalMimeTypeException exception){
                 markFailed(song, "invalid audio format");
+                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch (VirusDetectedException exception){
                 markFailed(song, "file contains viruses");
+                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch (AudioConversionException exception){
                 markFailed(song, "failed to convert file");
+                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch(StorageException exception){
                 markFailed(song, "failed to store file");
+                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }
             catch (Exception exception) {
-                exception.printStackTrace();
                 markFailed(song, "internal processing failed");
+                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }finally {
                 if (file != null && file.exists()) {
                     file.delete();

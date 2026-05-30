@@ -2,16 +2,20 @@ package com.dreamflow.api.media.service;
 import com.dreamflow.api.exception.exceptions.*;
 import com.dreamflow.api.media.dto.UploadRequest;
 import com.dreamflow.api.media.dto.UploadResponse;
+import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.entity.UploadStatus;
 import com.dreamflow.api.song.repository.SongMetadataRepository;
 import com.dreamflow.api.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -39,7 +43,8 @@ public class MediaService {
 
             songFile.transferTo(tempFile);
 
-            mediaProcessService.processUpload(jobId, tempFile);
+            CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+            mediaProcessService.processUpload(jobId, tempFile, userDetails);
         }catch (IOException exception){
             exception.printStackTrace();
         }

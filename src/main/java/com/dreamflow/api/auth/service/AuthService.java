@@ -86,14 +86,16 @@ public class AuthService {
 
         String refreshToken = jwtService.generateToken(refreshClaims, createdUser.getEmail(), 7*24*60*60*1000);
 
-        String welcomeText = "Hello " + input.email() + ",\n\n" +
+        String welcomeText = "Hello " + input.username() + ",\n\n" +
                 "Welcome to DreamFlow Music Streaming Platform!\n\n" +
                 "This is a test welcome email for our application. " +
                 "If you received this message by mistake, please feel free to ignore it.\n\n" +
                 "Enjoy the music!\n" +
                 "- DreamFlow Team";
 
-        emailService.sendMail(input.email(), input.username(), welcomeText);
+        String subject = "Welcome to Dreamflow.";
+
+        emailService.sendMail(input.email(), subject, welcomeText);
 
         return new LoginResponse(accessToken, refreshToken);
     }

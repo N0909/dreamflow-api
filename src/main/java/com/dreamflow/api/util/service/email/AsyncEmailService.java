@@ -15,11 +15,12 @@ public class AsyncEmailService {
     private final EmailService emailService;
 
 
-    public CompletableFuture<Void> sendWelcomeEmail(String email, String username){
+    public CompletableFuture<Void> sendWelcomeEmail(String email, String username, String body){
         return CompletableFuture.runAsync(()->{
-            emailService.sendWelcomeMail(
+            emailService.sendMail(
                     email,
-                    username
+                    username,
+                    body
             );
         },executorService);
     }

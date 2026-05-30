@@ -49,6 +49,7 @@ public class DreamflowSecurityConfig {
                                 .requestMatchers("/songs/**").permitAll()
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/home/**").authenticated()
+                                .requestMatchers("/ws/**").permitAll()
                                 .requestMatchers(
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
@@ -65,11 +66,11 @@ public class DreamflowSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
 
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

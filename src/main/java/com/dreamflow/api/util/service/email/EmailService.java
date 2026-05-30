@@ -12,11 +12,11 @@ public class EmailService {
     private JavaMailSender javaMailSender;
 
     @Async("emailExecutor")
-    public void sendMail(String toEmail, String username, String text){
+    public void sendMail(String toEmail, String subject , String text){
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setTo(toEmail);
-        message.setSubject("Welcome to Dreamflow Backend Api");
+        message.setSubject(subject);
         message.setText(text);
 
         javaMailSender.send(message);

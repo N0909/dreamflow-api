@@ -1,10 +1,13 @@
 package com.dreamflow.api.auth.controller;
 import com.dreamflow.api.auth.dto.*;
 import com.dreamflow.api.auth.service.AuthService;
-import com.dreamflow.api.util.service.email.EmailService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/auth")
@@ -13,32 +16,62 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<LoginResponse> signup(@RequestBody SignupRequest request){
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request, HttpServletResponse servletResponse){
         LoginResponse response = authService.signUp(request);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+        Cookie accessToken = new Cookie("access_token", response.accessToken());
+        accessToken.setHttpOnly(true);
+        accessToken.setSecure(true);
+        accessToken.setPath("/");
+        accessToken.setMaxAge(30*60);
+
+        Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
+        refreshToken.setHttpOnly(true);
+        refreshToken.setSecure(true);
+        refreshToken.setPath("/auth/refresh");
+        refreshToken.setMaxAge(7*24*60*60);
+
+        servletResponse.addCookie(accessToken);
+        servletResponse.addCookie(refreshToken);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<LoginResponse> signin(@RequestBody LoginRequest request){
+    public ResponseEntity<?> signin(@RequestBody LoginRequest request, HttpServletResponse servletResponse){
         LoginResponse response = authService.login(request);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+        Cookie accessToken = new Cookie("access_token", response.accessToken());
+        accessToken.setHttpOnly(true);
+        accessToken.setSecure(true);
+        accessToken.setPath("/");
+        accessToken.setMaxAge(30*60);
+
+        Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
+        refreshToken.setHttpOnly(true);
+        refreshToken.setSecure(true);
+        refreshToken.setPath("/auth/refresh");
+        refreshToken.setMaxAge(7*24*60*60);
+
+        servletResponse.addCookie(accessToken);
+        servletResponse.addCookie(refreshToken);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refreshToken(@RequestBody RefreshRequest request){
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshRequest request, HttpServletResponse response){
         RefreshResponse refreshResponse = authService.generateAccessToken(request.refreshToken());
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(refreshResponse);
+
+        Cookie accessToken = new Cookie("access_token", refreshResponse.accessToken());
+        accessToken.setHttpOnly(true);
+        accessToken.setSecure(true);
+        accessToken.setPath("/");
+        accessToken.setMaxAge(30*60);
+
+        response.addCookie(accessToken);
+
+        return ResponseEntity.ok().build();
     }
 
 }

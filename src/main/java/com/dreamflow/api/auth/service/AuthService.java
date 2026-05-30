@@ -82,7 +82,7 @@ public class AuthService {
                 "type", REFRESH
         );
 
-        String accessToken = jwtService.generateToken(claims, createdUser.getEmail(), 15*60*1000);
+        String accessToken = jwtService.generateToken(claims, createdUser.getEmail(), 30*60*1000);
 
         String refreshToken = jwtService.generateToken(refreshClaims, createdUser.getEmail(), 7*24*60*60*1000);
 
@@ -137,7 +137,7 @@ public class AuthService {
                 "type",ACCESS
         );
 
-        String accessToken = jwtService.generateToken(claims, userDetails.getUsername(), 15*60*1000);
+        String accessToken = jwtService.generateToken(claims, userDetails.getUsername(), 30*60*1000);
 
         Map<String, Object> refreshClaims = Map.of(
                 "userId", userDetails.getUserId(),
@@ -192,7 +192,7 @@ public class AuthService {
                 "type", ACCESS
         );
 
-        String accessToken = jwtService.generateToken(claims, email, 15*60*1000);
+        String accessToken = jwtService.generateToken(claims, email, 30*60*1000);
 
         return new RefreshResponse(accessToken);
     }

@@ -4,10 +4,12 @@ import com.dreamflow.api.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/auth")
@@ -15,19 +17,26 @@ import java.time.Duration;
 public class AuthController {
     private final AuthService authService;
 
+    @Autowired
+    private Environment env;
+
+    private boolean isProduction() {
+        return Arrays.asList(env.getActiveProfiles()).contains("prod");
+    }
+
     @PostMapping("/sign-up")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request, HttpServletResponse servletResponse){
         LoginResponse response = authService.signUp(request);
 
         Cookie accessToken = new Cookie("access_token", response.accessToken());
         accessToken.setHttpOnly(true);
-        accessToken.setSecure(true);
+        accessToken.setSecure(isProduction());
         accessToken.setPath("/");
         accessToken.setMaxAge(30*60);
 
         Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
         refreshToken.setHttpOnly(true);
-        refreshToken.setSecure(true);
+        refreshToken.setSecure(isProduction());
         refreshToken.setPath("/auth/refresh");
         refreshToken.setMaxAge(7*24*60*60);
 
@@ -43,13 +52,13 @@ public class AuthController {
 
         Cookie accessToken = new Cookie("access_token", response.accessToken());
         accessToken.setHttpOnly(true);
-        accessToken.setSecure(true);
+        accessToken.setSecure(isProduction());
         accessToken.setPath("/");
         accessToken.setMaxAge(30*60);
 
         Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
         refreshToken.setHttpOnly(true);
-        refreshToken.setSecure(true);
+        refreshToken.setSecure(isProduction());
         refreshToken.setPath("/auth/refresh");
         refreshToken.setMaxAge(7*24*60*60);
 
@@ -65,7 +74,7 @@ public class AuthController {
 
         Cookie accessToken = new Cookie("access_token", refreshResponse.accessToken());
         accessToken.setHttpOnly(true);
-        accessToken.setSecure(true);
+        accessToken.setSecure(isProduction());
         accessToken.setPath("/");
         accessToken.setMaxAge(30*60);
 

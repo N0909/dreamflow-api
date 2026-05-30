@@ -1,6 +1,4 @@
 package com.dreamflow.api.security;
-
-import com.dreamflow.api.util.LRUCache;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -42,14 +40,16 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = Arrays.stream(request.getCookies())
-                .filter(cookie -> cookie.getName()
-                        .equals("access_token"))
-                        .findFirst()
-                        .map(Cookie::getValue)
-                        .orElse(null);
-
+        if (request.getServletPath().equals("/csrf")){
+            filterChain.doFilter(request, response);
+            return;
+        }
+        Cookie[] cookies = request.getCookies();
+        String token = cookies == null ? null : Arrays.stream(cookies)
+                .filter(cookie -> cookie.getName().equals("access_token"))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
 
         if (token==null){
             filterChain.doFilter(request, response);

@@ -3,6 +3,7 @@ package com.dreamflow.api.config;
 import com.dreamflow.api.security.CustomAuthResponse;
 import com.dreamflow.api.security.JwtFilter;
 import com.dreamflow.api.security.RateLimit;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -22,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,17 +50,21 @@ public class DreamflowSecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> {
-                            if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
-                                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-                            } else {
-                                csrf.disable(); // disabled in dev/test
-                            }
-                        }
-                )
+                    if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
+                        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+                        requestHandler.setCsrfRequestAttributeName(null); // disables deferred token loading
+                        csrf
+                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                .csrfTokenRequestHandler(requestHandler);
+                    } else {
+                        csrf.disable();
+                    }
+                })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-//                .addFilterAfter(jwtFilter, RateLimit.class)
+//              .addFilterAfter(jwtFilter, RateLimit.class)
                 .authorizeHttpRequests(request->
-                        request.requestMatchers("/auth/**").permitAll()
+                        request.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll().
+                                requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/songs/**").permitAll()
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/home/**").authenticated()
@@ -68,7 +75,7 @@ public class DreamflowSecurityConfig {
                                         "/swagger-ui.html",
                                         "/upload",
                                         "/upload/**"
-                                ).permitAll()
+                                ).authenticated()
                                 .anyRequest().authenticated()
                 )
                 .build();

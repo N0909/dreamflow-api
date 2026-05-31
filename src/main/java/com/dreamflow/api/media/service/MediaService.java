@@ -4,6 +4,7 @@ import com.dreamflow.api.media.dto.UploadRequest;
 import com.dreamflow.api.media.dto.UploadResponse;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.entity.Song;
+import com.dreamflow.api.song.entity.SongMetadata;
 import com.dreamflow.api.song.entity.UploadStatus;
 import com.dreamflow.api.song.repository.SongMetadataRepository;
 import com.dreamflow.api.song.repository.SongRepository;
@@ -34,7 +35,15 @@ public class MediaService {
         song.setSongPath("");
         song.setUploadStatus(UploadStatus.INPROCESS);
 
+        SongMetadata songMetadata = new SongMetadata();
+        songMetadata.setSongTags(uploadRequest.tags());
+        songMetadata.setSongGenre(uploadRequest.genre());
+        songMetadata.setSong(song);
+
+        song.setSongMetadata(songMetadata);
+
         songRepository.save(song);
+
         try{
             Path tempFile = Files.createTempFile(
                 jobId,

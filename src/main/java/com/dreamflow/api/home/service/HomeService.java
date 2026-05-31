@@ -22,11 +22,11 @@ public class HomeService {
     private final SongService songService;
     private final PlaylistService playlistService;
 
-    public HomeResponseDTO getHomeData(){
+    public HomeResponseDTO getHomeData(int pageNo, int pageSize, int playlistSize){
         CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-        CompletableFuture<Page<SongDTO>> songDTOListFuture = getSongsAsync(0, 20);
-        CompletableFuture<List<PlaylistResponse>>  playlistResponseListFuture = getPlaylistAsync(userDetails.getUserId(), 5);
+        CompletableFuture<Page<SongDTO>> songDTOListFuture = getSongsAsync(pageNo, pageSize);
+        CompletableFuture<List<PlaylistResponse>>  playlistResponseListFuture = getPlaylistAsync(userDetails.getUserId(), playlistSize);
 
         Page<SongDTO> songDTOPage = songDTOListFuture.join();
 //        Page<SongDTO> songDTOPage = songService.getSongs(0,20);

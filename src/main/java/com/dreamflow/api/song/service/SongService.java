@@ -8,6 +8,7 @@ import com.dreamflow.api.song.repository.SongRepository;
 import com.dreamflow.api.util.LRUCache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -35,6 +36,8 @@ public class SongService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     private final SongRepository songRepository;
+    @Value("D:/media-storage/")
+    private String songPrefixPath;
 //    private final Map<Integer, String> cache = Collections.synchronizedMap(new LRUCache<>(100));
 
     public Page<SongDTO> getSongs(int pageNo, int pageSize){
@@ -66,6 +69,10 @@ public class SongService {
 
     public StreamResponse streamSong(int songId, String rangeHeader) throws IOException {
         String songPath = getSongPath(songId);
+
+        if (songPath.startsWith("songs")){
+            songPath = songPrefixPath+songPath;
+        }
 
         File file = new File(songPath);
         long fileLength = file.length();

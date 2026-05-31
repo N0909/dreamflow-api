@@ -37,10 +37,12 @@ public class MediaProcessService {
                 validateMimeType(tempFile);
                 scanForVirus(tempFile);
                 file = convertToMp3(jobId,tempFile);
+                long durationMs = extractDurationMs(file);
                 String path = storageService.storeAudioFile(jobId, file);
 
                 song.setSongPath(path);
                 song.setUploadStatus(UploadStatus.COMPLETED);
+                song.setDurationMs(durationMs);
 
                 songRepository.save(song);
 
@@ -62,6 +64,7 @@ public class MediaProcessService {
                 notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }
             catch (Exception exception) {
+                exception.printStackTrace();
                 markFailed(song, "internal processing failed");
                 notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }finally {
@@ -93,7 +96,6 @@ public class MediaProcessService {
         } catch (IOException e) {
             throw new FileProcessingException("Failed to read file for virus scan");
         } catch (Exception e) {
-            e.printStackTrace();
             throw new VirusScanUnavailableException("Virus scan service unavailable");
         }
 
@@ -168,6 +170,33 @@ public class MediaProcessService {
             }
         }
     }
+
+    private long extractDurationMs(File audioFile){
+        try{
+
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "ffprobe",
+                    "-v","error",
+                    "-show_entries", "format=duration",
+                    "-of","default=noprint_wrappers=1:nokey=1",
+                    audioFile.getAbsolutePath()
+            );
+
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+            String output = new String(
+              process.getInputStream().readAllBytes()
+            );
+
+            double durationSeconds = Double.parseDouble(output.trim());
+
+            return (long) (durationSeconds * 1000);
+        }catch (IOException e){
+            System.out.println(e.getCause());
+            throw new RuntimeException("Failed to extract duration", e);
+        }
+    }
+
 
     private void markFailed(Song song,String message){
         song.setUploadStatus(UploadStatus.FAILED);

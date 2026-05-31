@@ -28,7 +28,7 @@ public class Song {
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "song", orphanRemoval = true, cascade = CascadeType.REMOVE)
     private List<PlaylistSong> playlistSongList = new ArrayList<>();
-    @OneToOne(mappedBy = "song")
+    @OneToOne(mappedBy = "song", orphanRemoval = true, cascade = CascadeType.ALL)
     private SongMetadata songMetadata;
     @Enumerated(EnumType.STRING)
     @Column(name="stream_status")

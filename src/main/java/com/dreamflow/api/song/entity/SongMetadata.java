@@ -21,6 +21,8 @@ public class SongMetadata {
     private String songPoster;
     @Column(name="song_lyrics_synced")
     private String songLyricsSynced;
+    @Column(name="songGenre")
+    private String songGenre;
     @Column(name="added_at")
     @CreationTimestamp
     private LocalDateTime addedAt;

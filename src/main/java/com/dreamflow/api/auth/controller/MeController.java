@@ -16,8 +16,7 @@ public class MeController {
 
     @GetMapping()
     public ResponseEntity<UserResponse> getUser(HttpServletRequest request){
-        String token = request.getHeader("Authorization").substring(7);
-        UserResponse response = userService.getUser(token);
+        UserResponse response = userService.getUser();
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)

@@ -15,6 +15,7 @@ import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.repository.SongRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -100,6 +101,16 @@ public class PlaylistService {
                 created.getSong().getSongId(),
                 created.getSong().getSongName()
         );
+    }
+
+    public List<PlaylistResponse> getTopNPlaylist(int n){
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        return playlistRepository.findTopNRecent(userDetails.getUserId(), PageRequest.of(0, n));
+    }
+
+    public List<PlaylistResponse> getTopNPlaylist(int n, int userId){
+        return playlistRepository.findTopNRecent(userId, PageRequest.of(0, n));
     }
 
     public PlaylistSongResponse getPlaylistSongs(int playlistId){

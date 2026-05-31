@@ -59,4 +59,35 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "homeExecutor")
+    public Executor homeExecutor(
+            @Value("${executor.home.core-threads}")
+            int coreThreads,
+
+            @Value("${executor.home.max-threads}")
+            int maxThreads,
+
+            @Value("${executor.home.queue-capacity}")
+            int queueCapacity
+    ) {
+
+        ThreadPoolTaskExecutor executor =
+                new ThreadPoolTaskExecutor();
+
+        executor.setCorePoolSize(coreThreads);
+        executor.setMaxPoolSize(maxThreads);
+        executor.setQueueCapacity(queueCapacity);
+
+        executor.setThreadNamePrefix("home-");
+
+        executor.setRejectedExecutionHandler(
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+
+        executor.initialize();
+
+        return executor;
+    }
+
 }

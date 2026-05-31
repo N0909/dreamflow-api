@@ -7,7 +7,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails, Serializable {
@@ -15,13 +17,15 @@ public class CustomUserDetails implements UserDetails, Serializable {
     private String username;
     private String email;
     private String password;
+    private LocalDateTime createdAt;
     private Role role;
 
-    public CustomUserDetails(int userId, String username, String email, String password, Role role){
+    public CustomUserDetails(int userId, String username, String email, String password,LocalDateTime createdAt, Role role){
         this.userId=userId;
         this.username = username;
         this.email=email;
         this.password=password;
+        this.createdAt = createdAt;
         this.role = role;
     }
 
@@ -46,5 +50,6 @@ public class CustomUserDetails implements UserDetails, Serializable {
         return userId;
     }
     public String getName() { return username;}
-
+    public LocalDateTime getCreatedAt(){return createdAt;}
+    public Role getRole(){return role;}
 }

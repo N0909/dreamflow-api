@@ -25,12 +25,10 @@ public class PlaylistController {
 
     @PostMapping()
     public ResponseEntity<PlaylistResponse> createPlaylist(@RequestBody PlaylistRequest request){
-        CustomUserDetails details = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        assert details != null;
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(playlistService.createPlaylist(details.getUserId(), request));
+                .body(playlistService.createPlaylist(request));
     }
 
     @PatchMapping("/{playlistId}")
@@ -42,12 +40,10 @@ public class PlaylistController {
 
     @GetMapping()
     public ResponseEntity<List<PlaylistResponse>> getAllPlaylist(){
-        CustomUserDetails details = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        assert details != null;
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(playlistService.getAllPlaylist(details.getUserId()));
+                .body(playlistService.getAllPlaylist());
     }
 
     @PostMapping("/{playlistId}/songs")

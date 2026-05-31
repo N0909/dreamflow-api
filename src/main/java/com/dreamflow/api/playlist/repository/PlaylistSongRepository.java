@@ -11,4 +11,5 @@ import java.util.*;
 @Repository
 public interface PlaylistSongRepository extends JpaRepository<PlaylistSong, Integer> {
     List<PlaylistSong> findByPlaylist_PlaylistId(int playlistId);
+    boolean existsByPlaylist_PlaylistIdAndSong_SongId(int playlistId, int songId);
 }

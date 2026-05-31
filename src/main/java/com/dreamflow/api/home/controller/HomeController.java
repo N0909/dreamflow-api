@@ -27,7 +27,7 @@ public class HomeController {
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(homeService.getHomeData(user.getUserId()));
+                .body(homeService.getHomeData());
     }
 
 }

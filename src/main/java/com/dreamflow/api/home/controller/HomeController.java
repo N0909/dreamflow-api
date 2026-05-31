@@ -21,9 +21,7 @@ public class HomeController {
     private final HomeService homeService;
 
     @GetMapping
-    public ResponseEntity<HomeResponseDTO> getHome(
-            @AuthenticationPrincipal CustomUserDetails user){
-
+    public ResponseEntity<HomeResponseDTO> getHome(){
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_JSON)

@@ -2,8 +2,6 @@ package com.dreamflow.api.home.service;
 
 import com.dreamflow.api.home.dto.HomeResponseDTO;
 import com.dreamflow.api.playlist.dto.PlaylistResponse;
-import com.dreamflow.api.playlist.dto.PlaylistSongResponse;
-import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.service.PlaylistService;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.dto.SongDTO;
@@ -17,33 +15,41 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 @Service
 @RequiredArgsConstructor
 public class HomeService {
     private final SongService songService;
     private final PlaylistService playlistService;
-    private final ExecutorService executorService;
 
     public HomeResponseDTO getHomeData(){
-        CompletableFuture<Page<SongDTO>> songsFuture =
-                CompletableFuture.supplyAsync(()->
-                   songService.getSongs(0,10),
-                    executorService
-                );
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-        CompletableFuture<List<PlaylistResponse>> playlistFuture =
-                CompletableFuture.supplyAsync(playlistService::getAllPlaylist,
-                        executorService
-                );
+        CompletableFuture<Page<SongDTO>> songDTOListFuture = getSongsAsync(0, 20);
+        CompletableFuture<List<PlaylistResponse>>  playlistResponseListFuture = getPlaylistAsync(userDetails.getUserId(), 5);
 
-        Page<SongDTO> songDTOList = songsFuture.join();
-        List<PlaylistResponse> playlistResponseList = playlistFuture.join();
+        Page<SongDTO> songDTOPage = songDTOListFuture.join();
+//        Page<SongDTO> songDTOPage = songService.getSongs(0,20);
+        List<PlaylistResponse> playlistResponseList = playlistResponseListFuture.join();
+//        List<PlaylistResponse> playlistResponseList = playlistService.getTopNPlaylist(5);
 
         return new HomeResponseDTO(
-                songDTOList,
+                songDTOPage,
                 playlistResponseList
+        );
+    }
+
+    @Async("homeExecutor")
+    protected CompletableFuture<Page<SongDTO>> getSongsAsync(int page_no, int page_size){
+        return CompletableFuture.completedFuture(
+                songService.getSongs(page_no, page_size)
+        );
+    }
+
+    @Async("homeExecutor")
+    protected CompletableFuture<List<PlaylistResponse>> getPlaylistAsync(int userId,int n){
+        return CompletableFuture.completedFuture(
+                playlistService.getTopNPlaylist(n, userId)
         );
     }
 }

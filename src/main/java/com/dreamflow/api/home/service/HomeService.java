@@ -27,7 +27,6 @@ public class HomeService {
     private final ExecutorService executorService;
 
     public HomeResponseDTO getHomeData(){
-
         CompletableFuture<Page<SongDTO>> songsFuture =
                 CompletableFuture.supplyAsync(()->
                    songService.getSongs(0,10),

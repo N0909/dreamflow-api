@@ -2,22 +2,27 @@ package com.dreamflow.api.playlist.service;
 
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
+import com.dreamflow.api.exception.exceptions.ResourceAlreadyExistException;
 import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.playlist.dto.*;
 import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.entity.PlaylistSong;
 import com.dreamflow.api.playlist.repository.PlaylistRepository;
 import com.dreamflow.api.playlist.repository.PlaylistSongRepository;
+import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.repository.SongRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +34,16 @@ public class PlaylistService {
 
 
     @Transactional
-    public PlaylistResponse createPlaylist(int userId, PlaylistRequest request){
-        User user = userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User with Id " + userId + " Not Found"));
+    public PlaylistResponse createPlaylist(PlaylistRequest request){
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        boolean playlistExist = playlistRepository.existsByPlaylistNameAndUser_UserId(request.playlistName(), userDetails.getUserId());
+
+        if (playlistExist){
+            throw new ResourceAlreadyExistException("Playlist with name "+request.playlistName()+" Already exist");
+        }
+
+        User user = userRepository.findById(userDetails.getUserId()).orElseThrow(()->new ResourceNotFoundException("User not found"));
 
         Playlist playlist = new Playlist();
         playlist.setPlaylistName(request.playlistName());
@@ -44,24 +57,35 @@ public class PlaylistService {
 
     @Transactional
     public PlaylistResponse updatePlaylistDetails(int playlistId, PlaylistRequest request){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Not Found"));
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Playlist playlist = playlistRepository.findByPlaylistIdAndUser_UserId(playlistId, userDetails.getUserId()).orElseThrow(()->new ResourceNotFoundException("Not Found"));
 
         playlist.setPlaylistName(request.playlistName());
 
         return new PlaylistResponse(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getCreatedAt());
     }
 
-    public List<PlaylistResponse> getAllPlaylist(int userId){
-        List<PlaylistResponse> playlists = playlistRepository.getAllPlaylists(userId);
+    public List<PlaylistResponse> getAllPlaylist(){
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        List<PlaylistResponse> playlists = playlistRepository.getAllPlaylists(userDetails.getUserId());
 
         return playlists;
     }
 
     @Transactional
     public SongAddedResponse addSongInPlaylist(int playlistId, AddNewSongRequest songRequest){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Playlist playlist = playlistRepository.findByPlaylistIdAndUser_UserId(playlistId, userDetails.getUserId()).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
 
         Song song = songRepository.findById(songRequest.songId()).orElseThrow(()->new ResourceNotFoundException("Song not found"));
+
+        boolean songAlreadyExists = playlistSongRepository.existsByPlaylist_PlaylistIdAndSong_SongId(playlist.getPlaylistId(), song.getSongId());
+
+        if (songAlreadyExists){
+            throw new ResourceAlreadyExistException(song.getSongName()+" already exists in playlists");
+        }
 
         PlaylistSong playlistSong = new PlaylistSong();
 
@@ -79,11 +103,11 @@ public class PlaylistService {
     }
 
     public PlaylistSongResponse getPlaylistSongs(int playlistId){
-         List<PlaylistSong> playlistSongs = playlistSongRepository.findByPlaylist_PlaylistId(playlistId);
+         CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-         if (playlistSongs.isEmpty()){
-             return null;
-         }
+         Playlist playlist = playlistRepository.findByPlaylistIdAndUser_UserId(playlistId, userDetails.getUserId()).orElseThrow(()->new ResourceNotFoundException("Playlist doesn't exist"));
+
+         List<PlaylistSong> playlistSongs = playlistSongRepository.findByPlaylist_PlaylistId(playlist.getPlaylistId());
 
          List<SongDTO> songs = playlistSongs.stream()
                  .map(
@@ -95,16 +119,18 @@ public class PlaylistService {
                 ).toList();
 
          return new PlaylistSongResponse(
-                 playlistSongs.getFirst().getPlaylist().getPlaylistId(),
-                 playlistSongs.getFirst().getPlaylist().getPlaylistName(),
-                 playlistSongs.getFirst().getPlaylist().getCreatedAt(),
+                 playlist.getPlaylistId(),
+                 playlist.getPlaylistName(),
+                 playlist.getCreatedAt(),
                  songs
          );
     }
 
     @Transactional
     public void deletePlaylistSong(int playlistId, int songId){
-        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
+        CustomUserDetails userDetails = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Playlist playlist = playlistRepository.findByPlaylistIdAndUser_UserId(playlistId, userDetails.getUserId()).orElseThrow(()->new ResourceNotFoundException("Playlist Not Found"));
 
         boolean isRemoved = playlist.getPlaylistSongList()
                 .removeIf(play -> play.getSong().getSongId()==songId);

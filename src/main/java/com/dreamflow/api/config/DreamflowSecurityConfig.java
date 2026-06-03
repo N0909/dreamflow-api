@@ -1,9 +1,9 @@
 package com.dreamflow.api.config;
 
-import com.dreamflow.api.security.CustomAuthResponse;
 import com.dreamflow.api.security.JwtFilter;
 import com.dreamflow.api.security.RateLimit;
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
@@ -77,6 +77,15 @@ public class DreamflowSecurityConfig {
                                         "/upload/**"
                                 ).authenticated()
                                 .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex->ex.authenticationEntryPoint(
+                        (request, response, authException)->{
+                            response.sendError(
+                                    HttpServletResponse.SC_UNAUTHORIZED,
+                                    authException.getMessage()
+                            );
+                        }
+                        )
                 )
                 .build();
     }

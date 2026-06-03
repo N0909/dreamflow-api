@@ -1,7 +1,9 @@
 package com.dreamflow.api.auth.controller;
 import com.dreamflow.api.auth.dto.*;
 import com.dreamflow.api.auth.service.AuthService;
+import com.dreamflow.api.exception.exceptions.IllegalAuthException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class AuthController {
         accessToken.setHttpOnly(true);
         accessToken.setSecure(isProduction());
         accessToken.setPath("/");
-        accessToken.setMaxAge(30*60);
+        accessToken.setMaxAge(1*60);
 
         Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
         refreshToken.setHttpOnly(true);
@@ -69,8 +71,24 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshRequest request, HttpServletResponse response){
-        RefreshResponse refreshResponse = authService.generateAccessToken(request.refreshToken());
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response){
+
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies==null){
+            throw new IllegalAuthException("Authentication Expired");
+        }
+
+        String token = Arrays.stream(cookies).filter(cook->
+                cook.getName().equals("refresh_token")
+        )
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(()->
+                new IllegalAuthException("Authentication Expired")
+        );
+
+        RefreshResponse refreshResponse = authService.generateAccessToken(token);
 
         Cookie accessToken = new Cookie("access_token", refreshResponse.accessToken());
         accessToken.setHttpOnly(true);

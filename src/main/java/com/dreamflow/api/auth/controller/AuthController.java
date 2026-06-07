@@ -56,7 +56,7 @@ public class AuthController {
         accessToken.setHttpOnly(true);
         accessToken.setSecure(isProduction());
         accessToken.setPath("/");
-        accessToken.setMaxAge(1*60);
+        accessToken.setMaxAge(30*60);
 
         Cookie refreshToken = new Cookie("refresh_token", response.refreshToken());
         refreshToken.setHttpOnly(true);

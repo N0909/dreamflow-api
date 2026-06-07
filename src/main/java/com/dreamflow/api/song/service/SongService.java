@@ -1,5 +1,6 @@
 package com.dreamflow.api.song.service;
 
+import com.dreamflow.api.cache.service.CacheService;
 import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class SongService {
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private CacheService cacheService;
     private final SongRepository songRepository;
     @Value("D:/media-storage/")
     private String songPrefixPath;
@@ -47,14 +48,20 @@ public class SongService {
 
     @Cacheable(value="song", key="#songId")
     public SongDTO getSong(int songId){
-        SongDTO song = songRepository.findSongById(songId).orElseThrow(
-                ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
-        return song;
+        SongDTO song = (SongDTO) cacheService.getValue("#"+songId+"#");
+        if (song==null){
+            song = songRepository.findSongById(songId).orElseThrow(
+                    ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
+
+            cacheService.setValue("#"+songId+"#", song, 5, TimeUnit.MINUTES);
+        }
+
+         return song;
     }
 
     private String getSongPath(int songId){
         // First Search in the Redis Cache
-        Object path= stringRedisTemplate.opsForValue().get("songPath::"+songId);
+        Object path= cacheService.getValue("songPath::"+songId);
 
         if (path==null){ // If Cache miss
             // Fetch from db
@@ -62,8 +69,9 @@ public class SongService {
                     () -> new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
             ).getSongPath();
             // store in cache for 120 seconds
-            stringRedisTemplate.opsForValue().set("songPath::"+songId,(String) path, 120, TimeUnit.SECONDS);
+            cacheService.setValue("songPath::"+songId, (String) path, 120, TimeUnit.SECONDS);
         }
+
         return (String) path;
     }
 

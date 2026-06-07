@@ -48,25 +48,25 @@ public class MediaProcessService {
 
                 // getUsername is actually email here
                 // getName is the real username
-                notificationService.notifySuccess(userDetails.getUserId(), userDetails.getName(), userDetails.getUsername(), song.getSongName());
+                notificationService.notifySuccess(jobId, userDetails.getName(), userDetails.getUsername(), song.getSongName());
 
             }catch (IllegalMimeTypeException exception){
                 markFailed(song, "invalid audio format");
-                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
+                notificationService.notifyFailure(jobId, userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch (VirusDetectedException exception){
                 markFailed(song, "file contains viruses");
-                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
+                notificationService.notifyFailure(jobId, userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch (AudioConversionException exception){
                 markFailed(song, "failed to convert file");
-                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
+                notificationService.notifyFailure(jobId, userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }catch(StorageException exception){
                 markFailed(song, "failed to store file");
-                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
+                notificationService.notifyFailure(jobId, userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }
             catch (Exception exception) {
                 exception.printStackTrace();
                 markFailed(song, "internal processing failed");
-                notificationService.notifyFailure(userDetails.getUserId(), userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
+                notificationService.notifyFailure(jobId, userDetails.getUsername(), userDetails.getName(), song.getSongName(), exception.getMessage());
             }finally {
                 if (file != null && file.exists()) {
                     file.delete();

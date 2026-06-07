@@ -15,14 +15,14 @@ public class NotificationService {
     private final EmailService emailService;
     private final SimpMessagingTemplate ws;
 
-    public void notifySuccess(int userId,String username ,String email, String songName){
+    public void notifySuccess(String jobId,String username ,String email, String songName){
         sendEmail(email, username, songName);
-        pushWs(userId, UploadStatus.COMPLETED, songName + " is ready to play");
+        pushWs(jobId, UploadStatus.COMPLETED, songName + " is ready to play");
     }
 
-    public void notifyFailure(int userId, String email, String username, String songName, String reason){
+    public void notifyFailure(String jobId, String email, String username, String songName, String reason){
         sendEmail(email, username, songName, reason);
-        pushWs(userId, UploadStatus.FAILED, songName + " upload is failed", reason);
+        pushWs(jobId, UploadStatus.FAILED, songName + " upload is failed", reason);
     }
 
     private void sendEmail(String email, String username, String songName) {
@@ -56,15 +56,15 @@ public class NotificationService {
         emailService.sendMail(email, subject, body);
     }
 
-    private void pushWs(int userId, UploadStatus uploadStatus, String message){
-        System.out.println("Pushing WS to userId: " + userId + " status: " + uploadStatus);
-        ws.convertAndSend("/topic/songs/" + userId,
+    private void pushWs(String jobId, UploadStatus uploadStatus, String message){
+        System.out.println("Pushing WS to userId: " + jobId + " status: " + uploadStatus);
+        ws.convertAndSend("/topic/songs/" + jobId,
                 (Object) Map.of("status", uploadStatus, "message", message));
     }
 
-    private void pushWs(int userId, UploadStatus uploadStatus, String message, String reason){
-        System.out.println("Pushing WS to userId: " + userId + " status: " + uploadStatus);
-        ws.convertAndSend("/topic/songs/" + userId,
+    private void pushWs(String jobId, UploadStatus uploadStatus, String message, String reason){
+        System.out.println("Pushing WS to userId: " + jobId + " status: " + uploadStatus);
+        ws.convertAndSend("/topic/songs/" + jobId,
                 (Object) Map.of("status", uploadStatus, "message", message, "reason", reason));
     }
 }

@@ -8,8 +8,6 @@ import com.dreamflow.api.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import xyz.capybara.clamav.ClamavClient;
 import xyz.capybara.clamav.commands.scan.result.ScanResult;
@@ -18,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ExecutorService;
+import com.dreamflow.api.search.service.implementation.SongIndexingService;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +27,7 @@ public class MediaProcessService {
     private final StorageService storageService;
     private final SongRepository songRepository;
     private final NotificationService notificationService;
+    private final SongIndexingService songIndexingService;
 
     @Async("mediaProcessingExecutor")
     public void processUpload(String jobId, Path tempFile, CustomUserDetails userDetails){
@@ -44,8 +44,9 @@ public class MediaProcessService {
                 song.setUploadStatus(UploadStatus.COMPLETED);
                 song.setDurationMs(durationMs);
 
-                songRepository.save(song);
+                Song createdSong = songRepository.save(song);
 
+                songIndexingService.indexSong(createdSong);
                 // getUsername is actually email here
                 // getName is the real username
                 notificationService.notifySuccess(jobId, userDetails.getName(), userDetails.getUsername(), song.getSongName());

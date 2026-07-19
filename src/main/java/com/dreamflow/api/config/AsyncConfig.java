@@ -90,4 +90,29 @@ public class AsyncConfig {
         return executor;
     }
 
+    @Bean(name="indexExecutor")
+    public Executor indexExecutor(
+            @Value("${executor.media-processing.core-threads}")
+            int coreThreads,
+            @Value("${executor.media-processing.max-threads}")
+            int maxThreads,
+            @Value("${executor.media-processing.queue-capacity}")
+            int queueCapacity
+    ){
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(coreThreads);
+        taskExecutor.setMaxPoolSize(maxThreads);
+        taskExecutor.setQueueCapacity(queueCapacity);
+
+        taskExecutor.setThreadNamePrefix("indexer-");
+
+        taskExecutor.setRejectedExecutionHandler(
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+
+        taskExecutor.initialize();
+
+        return taskExecutor;
+    }
+
 }

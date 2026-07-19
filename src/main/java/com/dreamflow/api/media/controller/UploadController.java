@@ -22,8 +22,4 @@ public class UploadController {
     public ResponseEntity<UploadResponse> handleSongUpload(UploadRequest uploadRequest,@RequestPart("song-file") MultipartFile songFile){
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mediaService.handleUpload(uploadRequest, songFile));
     }
-    @GetMapping("/hello")
-    public String hello(){
-        return "hello";
-    }
 }

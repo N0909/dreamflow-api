@@ -64,6 +64,7 @@ public class DreamflowSecurityConfig {
                         request.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll().
                                 requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/songs/**").permitAll()
+                                .requestMatchers("/search/**").permitAll()
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/home/**").authenticated()
                                 .requestMatchers("/ws/**").authenticated()

@@ -37,58 +37,54 @@ public class SongService {
     @Autowired
     private CacheService cacheService;
     private final SongRepository songRepository;
-    @Value("D:/media-storage/")
+    @Value("${media.storage.root}")
     private String songPrefixPath;
-//    private final Map<Integer, String> cache = Collections.synchronizedMap(new LRUCache<>(100));
+    // private final Map<Integer, String> cache = Collections.synchronizedMap(new
+    // LRUCache<>(100));
 
-    public Page<SongDTO> getSongs(int pageNo, int pageSize){
-        Pageable pageable = PageRequest.of(pageNo,pageSize);
+    public Page<SongDTO> getSongs(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
         return songRepository.findSongs(pageable);
     }
 
-    @Cacheable(value="song", key="#songId")
-    public SongDTO getSong(int songId){
-        SongDTO song = (SongDTO) cacheService.getValue("#"+songId+"#");
-        if (song==null){
+    @Cacheable(value = "song", key = "#songId")
+    public SongDTO getSong(int songId) {
+        SongDTO song = (SongDTO) cacheService.getValue("#" + songId + "#");
+        if (song == null) {
             song = songRepository.findSongById(songId).orElseThrow(
-                    ()->new ResourceNotFoundException("Song with id "+songId+" doesn't exist"));
+                    () -> new ResourceNotFoundException("Song with id " + songId + " doesn't exist"));
 
-            cacheService.setValue("#"+songId+"#", song, 5, TimeUnit.MINUTES);
+            cacheService.setValue("#" + songId + "#", song, 5, TimeUnit.MINUTES);
         }
 
-         return song;
+        return song;
     }
 
-    private String getSongPath(int songId){
+    private String getSongPath(int songId) {
         // First Search in the Redis Cache
-        Object path= cacheService.getValue("songPath::"+songId);
+        Object path = cacheService.getValue("songPath::" + songId);
 
-        if (path==null){ // If Cache miss
+        if (path == null) { // If Cache miss
             // Fetch from db
             path = songRepository.findById(songId).orElseThrow(
-                    () -> new ResourceNotFoundException("Song with id "+songId+" doesn't exist")
-            ).getSongPath();
+                    () -> new ResourceNotFoundException("Song with id " + songId + " doesn't exist")).getSongPath();
             // store in cache for 120 seconds
-            cacheService.setValue("songPath::"+songId, (String) path, 120, TimeUnit.SECONDS);
+            cacheService.setValue("songPath::" + songId, (String) path, 120, TimeUnit.SECONDS);
         }
 
         return (String) path;
     }
 
     public StreamResponse streamSong(int songId, String rangeHeader) throws IOException {
-        String songPath = getSongPath(songId);
-
-        if (songPath.startsWith("songs")){
-            songPath = songPrefixPath+songPath;
-        }
+        String songPath = songPrefixPath + getSongPath(songId);
 
         File file = new File(songPath);
         long fileLength = file.length();
 
         // Case 1: Range Not Present then just give full file
-        if (rangeHeader==null){
+        if (rangeHeader == null) {
             InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
-            return new StreamResponse(resource, 0, fileLength-1, fileLength, false);
+            return new StreamResponse(resource, 0, fileLength - 1, fileLength, false);
         }
         String range = rangeHeader.replace("bytes=", "");
         String[] parts = range.split("-");
@@ -105,10 +101,10 @@ public class SongService {
 
         end = Math.min(end, fileLength - 1);
 
-        try(RandomAccessFile raf = new RandomAccessFile(file, "r")){
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(start);
 
-            byte[] data = new byte[(int) (end-start+1)];
+            byte[] data = new byte[(int) (end - start + 1)];
             raf.readFully(data);
 
             ByteArrayResource byteArrayResource = new ByteArrayResource(data);

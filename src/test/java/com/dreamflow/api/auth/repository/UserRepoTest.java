@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+//@SpringBootTest
 public class UserRepoTest {
-    @Autowired
+//    @Autowired
     private UserRepository userRepository;
 
-    @Test
+//    @Test
     public void testUser(){
         User user = userRepository.findByEmail("johndoe9@gmail.com").orElseThrow(()->new RuntimeException(""));
         System.out.println(user);

@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SongMetadataRepository extends JpaRepository<SongMetadata, Long> {
-    Optional<SongMetadata> findBySongId(Integer songId);
+    Optional<SongMetadata> findBySong_SongId(Integer songId);
 }

@@ -12,8 +12,6 @@ import com.dreamflow.api.song.repository.SongRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class SongIndexingService {
     private final EmbeddingService embeddingClient;
@@ -21,96 +19,103 @@ public class SongIndexingService {
     private final SongRepository songRepository;
     private final SongMetadataRepository songMetadataRepository;
 
-    public SongIndexingService(EmbeddingService embeddingClient, SongSearchRepository songSearchRepository, SongRepository songRepository, SongMetadataRepository songMetadataRepository){
+    public SongIndexingService(EmbeddingService embeddingClient, SongSearchRepository songSearchRepository,
+            SongRepository songRepository, SongMetadataRepository songMetadataRepository) {
         this.embeddingClient = embeddingClient;
         this.songSearchRepository = songSearchRepository;
         this.songRepository = songRepository;
         this.songMetadataRepository = songMetadataRepository;
     }
 
-    public void reIndexAll(){
-            List<Song> songs = songRepository.findAll();
-            for (Song song : songs){
-                try{
-                    indexSong(song);
-                }catch (Exception e){
-                    System.out.println(song.getSongName()+" "+e.getCause());
-                }
-            }
+    @Async("indexExecutor")
+    public void indexSong(Song song, SongMetadata songMetadata) {
+        try {
+            String songName = song.getSongName() != null ? song.getSongName() : "";
+            String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
+            String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
+            String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
+            String combinedText = (songName + " " + tags + " " + genre).trim();
+
+            EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
+            float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
+
+            SongDocument songDocument = new SongDocument();
+            songDocument.setSongId(song.getSongId());
+            songDocument.setSongName(songName);
+            songDocument.setTags(tags);
+            songDocument.setGenre(genre);
+            songDocument.setLyrics(lyrics);
+            songDocument.setEmbedding(embedding);
+
+            songSearchRepository.save(songDocument);
+        } catch (Exception e) {
+            // ignoring for now will log it in future
+        }
     }
 
     @Async("indexExecutor")
-    public void indexSong(Song song, SongMetadata songMetadata){
-        String songName = song.getSongName() != null ? song.getSongName() : "";
-        String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
-        String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
-        String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
-        String combinedText = (songName + " " + tags + " " + genre).trim();
+    public void indexSong(Song song) {
+        try {
 
-        EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
-        float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
+            SongMetadata songMetadata = songMetadataRepository.findBySong_SongId(
+                    song.getSongId()).orElseThrow(
+                            () -> new ResourceNotFoundException("Song with id " + song.getSongId() + " doesn't exist"));
 
-        SongDocument songDocument = new SongDocument();
-        songDocument.setSongId(song.getSongId());
-        songDocument.setSongName(songName);
-        songDocument.setSongTags(tags);
-        songDocument.setSongGenre(genre);
-        songDocument.setLyrics(lyrics);
+            String songName = song.getSongName() != null ? song.getSongName() : "";
+            String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
+            String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
+            String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
+            String combinedText = (songName + " " + tags + " " + genre).trim();
 
-        songSearchRepository.save(songDocument);
+            EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
+            float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
+
+            SongDocument songDocument = new SongDocument();
+            songDocument.setSongId(song.getSongId());
+            songDocument.setSongName(songName);
+            songDocument.setTags(tags);
+            songDocument.setGenre(genre);
+            songDocument.setLyrics(lyrics);
+            songDocument.setEmbedding(embedding);
+
+            songSearchRepository.save(songDocument);
+        } catch (Exception e) {
+            // ignoring for now will log it in future
+        }
     }
 
     @Async("indexExecutor")
-    public void indexSong(Song song){
-        SongMetadata songMetadata = songMetadataRepository.findBySongId(
-                song.getSongId()
-        );
+    public void indexSong(int songId) {
+        try {
 
-        String songName = song.getSongName() != null ? song.getSongName() : "";
-        String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
-        String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
-        String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
-        String combinedText = (songName + " " + tags + " " + genre).trim();
+            Song song = songRepository.findById(songId).orElseThrow(
+                    () -> new ResourceNotFoundException("song not found"));
 
-        EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
-        float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
+            SongMetadata songMetadata = songMetadataRepository.findBySong_SongId(
+                    song.getSongId()).orElseThrow(
+                            () -> new ResourceNotFoundException("Song with id " + song.getSongId() + " doesn't exist"));
 
-        SongDocument songDocument = new SongDocument();
-        songDocument.setSongId(song.getSongId());
-        songDocument.setSongName(songName);
-        songDocument.setSongTags(tags);
-        songDocument.setSongGenre(genre);
-        songDocument.setLyrics(lyrics);
+            String songName = song.getSongName() != null ? song.getSongName() : "";
+            String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
+            String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
+            String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
+            String combinedText = (songName + " " + tags + " " + genre).trim();
 
-        songSearchRepository.save(songDocument);
-    }
+            EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
+            float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
 
-    @Async("indexExecutor")
-    public void indexSong(int songId){
-        Song song = songRepository.findById(songId).orElseThrow(
-                ()->new ResourceNotFoundException("song not found")
-        );
+            SongDocument songDocument = new SongDocument();
+            songDocument.setSongId(song.getSongId());
+            songDocument.setSongName(songName);
+            songDocument.setTags(tags);
+            songDocument.setGenre(genre);
+            songDocument.setLyrics(lyrics);
+            songDocument.setEmbedding(embedding);
 
-        SongMetadata songMetadata = songMetadataRepository.findBySongId(
-                song.getSongId()
-        );
+            songSearchRepository.save(songDocument);
 
-        String songName = song.getSongName() != null ? song.getSongName() : "";
-        String tags = songMetadata.getSongTags() != null ? songMetadata.getSongTags() : "";
-        String genre = songMetadata.getSongGenre() != null ? songMetadata.getSongGenre() : "";
-        String lyrics = songMetadata.getSongLyrics() != null ? songMetadata.getSongLyrics() : "";
-        String combinedText = (songName + " " + tags + " " + genre).trim();
-
-        EmbeddingRequest embeddingRequest = new EmbeddingRequest(combinedText);
-        float[] embedding = embeddingClient.getEmbedding(embeddingRequest);
-
-        SongDocument songDocument = new SongDocument();
-        songDocument.setSongId(song.getSongId());
-        songDocument.setSongName(songName);
-        songDocument.setSongTags(tags);
-        songDocument.setSongGenre(genre);
-        songDocument.setLyrics(lyrics);
-
-        songSearchRepository.save(songDocument);
+        } catch (Exception e) {
+            // ignoring for now will log it in future
+        }
     }
 }

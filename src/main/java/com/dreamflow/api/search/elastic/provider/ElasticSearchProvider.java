@@ -1,12 +1,11 @@
-package com.dreamflow.api.search.service.implementation;
+package com.dreamflow.api.search.elastic.provider;
 
 import com.dreamflow.api.exception.exceptions.EmbeddingServerDownException;
 import com.dreamflow.api.exception.exceptions.SearchNotAvailableException;
 import com.dreamflow.api.search.dto.EmbeddingRequest;
 import com.dreamflow.api.search.dto.SongSearchResponse;
-import com.dreamflow.api.search.entity.SongDocument;
-import com.dreamflow.api.search.repository.SongSearchRepository;
-import com.dreamflow.api.search.service.EmbeddingService;
+import com.dreamflow.api.search.elastic.entity.SongDocument;
+import com.dreamflow.api.search.elastic.embedding.EmbeddingService;
 import com.dreamflow.api.search.service.SearchProvider;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.repository.SongRepository;
@@ -17,6 +16,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -25,19 +25,17 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-@Primary 
+@Primary
 public class ElasticSearchProvider implements SearchProvider{
-    private final SongSearchRepository songSearchRepository;
     private final EmbeddingService embeddingClient;
     private final ElasticsearchOperations elasticsearchOperations;
     private final SongRepository songRepository;
 
     public ElasticSearchProvider(EmbeddingService embeddingClient,
-            ElasticsearchOperations elasticsearchOperations, SongRepository songRepository, SongSearchRepository songSearchRepository) {
+            ElasticsearchOperations elasticsearchOperations, SongRepository songRepository) {
         this.embeddingClient = embeddingClient;
         this.elasticsearchOperations = elasticsearchOperations;
         this.songRepository = songRepository;
-        this.songSearchRepository = songSearchRepository;
     }
 
     public SongSearchResponse search(String query) {

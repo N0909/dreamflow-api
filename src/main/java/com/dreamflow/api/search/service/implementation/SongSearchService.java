@@ -1,4 +1,5 @@
 package com.dreamflow.api.search.service.implementation;
+import com.dreamflow.api.search.elastic.provider.ElasticSearchProvider;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.stereotype.Service;
 

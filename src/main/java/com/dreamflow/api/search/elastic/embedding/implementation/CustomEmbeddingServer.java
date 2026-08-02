@@ -1,8 +1,8 @@
-package com.dreamflow.api.search.service.implementation;
+package com.dreamflow.api.search.elastic.embedding.implementation;
 import com.dreamflow.api.exception.exceptions.EmbeddingServerDownException;
 import com.dreamflow.api.search.dto.EmbeddingRequest;
 import com.dreamflow.api.search.dto.EmbeddingResponse;
-import com.dreamflow.api.search.service.EmbeddingService;
+import com.dreamflow.api.search.elastic.embedding.EmbeddingService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;

@@ -37,6 +37,9 @@ public class Song {
     private String jobId;
     @Column(name="reason_for_failure")
     private String FailReason;
+    @Enumerated(EnumType.STRING)
+    @Column(name="visibility_status", nullable = false)
+    private VisibilityStatus visibilityStatus;
 
     public void addPlaylistSong(PlaylistSong playlistSong){
         playlistSong.setSong(this);

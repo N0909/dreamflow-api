@@ -1,4 +1,4 @@
-package com.dreamflow.api.search.service;
+package com.dreamflow.api.search.elastic.embedding;
 import com.dreamflow.api.search.dto.EmbeddingRequest;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.dreamflow.api.search.entity;
+package com.dreamflow.api.search.elastic.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

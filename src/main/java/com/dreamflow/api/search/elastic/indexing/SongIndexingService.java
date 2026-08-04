@@ -1,28 +1,29 @@
-package com.dreamflow.api.search.service.implementation;
+package com.dreamflow.api.search.elastic.indexing;
 
 import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.search.dto.EmbeddingRequest;
-import com.dreamflow.api.search.entity.SongDocument;
-import com.dreamflow.api.search.repository.SongSearchRepository;
-import com.dreamflow.api.search.service.EmbeddingService;
+import com.dreamflow.api.search.elastic.entity.SongDocument;
+import com.dreamflow.api.search.elastic.embedding.EmbeddingService;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.entity.SongMetadata;
 import com.dreamflow.api.song.repository.SongMetadataRepository;
 import com.dreamflow.api.song.repository.SongRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SongIndexingService {
     private final EmbeddingService embeddingClient;
-    private final SongSearchRepository songSearchRepository;
     private final SongRepository songRepository;
     private final SongMetadataRepository songMetadataRepository;
+    private final ElasticsearchOperations elasticsearchOperations;
 
-    public SongIndexingService(EmbeddingService embeddingClient, SongSearchRepository songSearchRepository,
+    public SongIndexingService(EmbeddingService embeddingClient, ElasticsearchOperations elasticsearchOperations,
             SongRepository songRepository, SongMetadataRepository songMetadataRepository) {
         this.embeddingClient = embeddingClient;
-        this.songSearchRepository = songSearchRepository;
+        this.elasticsearchOperations = elasticsearchOperations;
         this.songRepository = songRepository;
         this.songMetadataRepository = songMetadataRepository;
     }
@@ -47,7 +48,7 @@ public class SongIndexingService {
             songDocument.setLyrics(lyrics);
             songDocument.setEmbedding(embedding);
 
-            songSearchRepository.save(songDocument);
+            elasticsearchOperations.save(songDocument);
         } catch (Exception e) {
             // ignoring for now will log it in future
         }
@@ -78,7 +79,7 @@ public class SongIndexingService {
             songDocument.setLyrics(lyrics);
             songDocument.setEmbedding(embedding);
 
-            songSearchRepository.save(songDocument);
+            elasticsearchOperations.save(songDocument);
         } catch (Exception e) {
             // ignoring for now will log it in future
         }
@@ -112,7 +113,7 @@ public class SongIndexingService {
             songDocument.setLyrics(lyrics);
             songDocument.setEmbedding(embedding);
 
-            songSearchRepository.save(songDocument);
+            elasticsearchOperations.save(songDocument);
 
         } catch (Exception e) {
             // ignoring for now will log it in future

@@ -16,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ExecutorService;
-import com.dreamflow.api.search.service.implementation.SongIndexingService;
+import com.dreamflow.api.search.elastic.indexing.SongIndexingService;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +38,7 @@ public class MediaProcessService {
                 scanForVirus(tempFile);
                 file = convertToMp3(jobId,tempFile);
                 long durationMs = extractDurationMs(file);
+
                 String path = storageService.storeAudioFile(jobId, file);
 
                 song.setSongPath(path);

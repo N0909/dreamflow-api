@@ -47,8 +47,6 @@ public class MediaProcessService {
 
                 Song createdSong = songRepository.save(song);
 
-                songIndexingService.indexSong(createdSong);
-                
                 // getUsername is actually email here
                 // getName is the real username
                 notificationService.notifySuccess(jobId, userDetails.getName(), userDetails.getUsername(), song.getSongName());

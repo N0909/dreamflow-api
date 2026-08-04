@@ -17,7 +17,7 @@ public class NotificationService {
 
     public void notifySuccess(String jobId,String username ,String email, String songName){
         sendEmail(email, username, songName);
-        pushWs(jobId, UploadStatus.COMPLETED, songName + " is ready to play");
+        pushWs(jobId, UploadStatus.COMPLETED, songName + " uploaded successfully. It will be available after admin approval.");
     }
 
     public void notifyFailure(String jobId, String email, String username, String songName, String reason){
@@ -29,9 +29,14 @@ public class NotificationService {
         String subject = "Your uploaded song is ready";
 
         String body = String.format(
-                "Hello %s,\n\n" +
-                        "Your uploaded song \"%s\" is now ready to play.\n\n" +
-                        "Thank you for using our platform.",
+                """
+                        Hello %s,
+
+                        Your song "%s" has been uploaded successfully and is now awaiting review by our moderation team.
+                        
+                        You'll be notified once your song has been approved and is available on DreamFlow.
+                        
+                        Thank you for using our platform.""",
                 username,
                 songName
         );

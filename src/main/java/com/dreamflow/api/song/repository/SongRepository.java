@@ -14,10 +14,10 @@ import java.util.Optional;
 
 @Repository
 public interface SongRepository extends JpaRepository<Song, Integer> {
-    @Query("SELECT new com.dreamflow.api.song.dto.SongDTO(s.songId, s.songName, s.durationMs) FROM Song s WHERE s.uploadStatus='COMPLETED'")
+    @Query("SELECT new com.dreamflow.api.song.dto.SongDTO(s.songId, s.songName, s.durationMs) FROM Song s WHERE s.uploadStatus='COMPLETED' AND s.visibilityStatus='APPROVED'")
     Page<SongDTO> findSongs(Pageable pageable);
 
-    @Query("SELECT new com.dreamflow.api.song.dto.SongDTO(s.songId, s.songName, s.durationMs) FROM Song s WHERE s.songId=:songId")
+    @Query("SELECT new com.dreamflow.api.song.dto.SongDTO(s.songId, s.songName, s.durationMs) FROM Song s WHERE s.songId=:songId AND s.uploadStatus='COMPLETED' AND s.visibilityStatus='APPROVED'")
     Optional<SongDTO> findSongById(int songId);
 
     Optional<Song> findByJobId(String jobId);
@@ -30,6 +30,7 @@ public interface SongRepository extends JpaRepository<Song, Integer> {
                 )
                 FROM Song s
                 WHERE s.songId IN :ids
+                            AND s.visibilityStatus='ACCEPTED' AND s.uploadStatus='COMPLTED'
             """)
     List<SongDTO> findSongs(@Param("ids") List<Integer> ids);
 
@@ -56,6 +57,7 @@ public interface SongRepository extends JpaRepository<Song, Integer> {
                     ''
                 )
             ) LIKE LOWER(CONCAT('%', :query, '%'))
+                        AND s.uploadStatus='COMPLETED' AND s.visibilityStatus='APPROVED' 
             """)
     List<SongDTO> search(String query);
 

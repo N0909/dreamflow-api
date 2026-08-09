@@ -5,6 +5,8 @@ import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
 import com.dreamflow.api.song.entity.Song;
+import com.dreamflow.api.song.entity.UploadStatus;
+import com.dreamflow.api.song.entity.VisibilityStatus;
 import com.dreamflow.api.song.repository.SongRepository;
 import com.dreamflow.api.util.LRUCache;
 import lombok.RequiredArgsConstructor;
@@ -60,13 +62,13 @@ public class SongService {
         return song;
     }
 
-    private String getSongPath(int songId) {
+    public String getSongPath(int songId, VisibilityStatus visibilityStatus) {
         // First Search in the Redis Cache
         Object path = cacheService.getValue("songPath::" + songId);
 
         if (path == null) { // If Cache miss
             // Fetch from db
-            path = songRepository.findById(songId).orElseThrow(
+            path = songRepository.findBySongIdAndUploadStatusAndVisibilityStatus(songId, UploadStatus.COMPLETED,visibilityStatus).orElseThrow(
                     () -> new ResourceNotFoundException("Song with id " + songId + " doesn't exist")).getSongPath();
             // store in cache for 120 seconds
             cacheService.setValue("songPath::" + songId, (String) path, 120, TimeUnit.SECONDS);
@@ -75,8 +77,8 @@ public class SongService {
         return (String) path;
     }
 
-    public StreamResponse streamSong(int songId, String rangeHeader) throws IOException {
-        String songPath = songPrefixPath + getSongPath(songId);
+    public StreamResponse streamSong(String path, String rangeHeader) throws IOException {
+        String songPath = songPrefixPath + path;
 
         File file = new File(songPath);
         long fileLength = file.length();

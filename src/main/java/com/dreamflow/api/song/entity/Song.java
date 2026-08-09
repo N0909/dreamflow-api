@@ -1,4 +1,5 @@
 package com.dreamflow.api.song.entity;
+import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.playlist.entity.PlaylistSong;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +41,9 @@ public class Song {
     @Enumerated(EnumType.STRING)
     @Column(name="visibility_status", nullable = false)
     private VisibilityStatus visibilityStatus;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User uploadedBy;
 
     public void addPlaylistSong(PlaylistSong playlistSong){
         playlistSong.setSong(this);

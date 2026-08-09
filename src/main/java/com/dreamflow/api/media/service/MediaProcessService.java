@@ -1,4 +1,6 @@
 package com.dreamflow.api.media.service;
+import com.dreamflow.api.auth.entity.User;
+import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.exception.exceptions.*;
 import com.dreamflow.api.security.CustomUserDetails;
 import com.dreamflow.api.song.entity.Song;
@@ -28,6 +30,7 @@ public class MediaProcessService {
     private final SongRepository songRepository;
     private final NotificationService notificationService;
     private final SongIndexingService songIndexingService;
+    private final UserRepository userRepository;
 
     @Async("mediaProcessingExecutor")
     public void processUpload(String jobId, Path tempFile, CustomUserDetails userDetails){
@@ -44,7 +47,9 @@ public class MediaProcessService {
                 song.setSongPath(path);
                 song.setUploadStatus(UploadStatus.COMPLETED);
                 song.setDurationMs(durationMs);
+                User uploadedBy = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
 
+                song.setUploadedBy(uploadedBy);
                 Song createdSong = songRepository.save(song);
 
                 // getUsername is actually email here

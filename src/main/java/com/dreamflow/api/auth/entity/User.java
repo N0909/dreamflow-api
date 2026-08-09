@@ -1,5 +1,6 @@
 package com.dreamflow.api.auth.entity;
 import com.dreamflow.api.playlist.entity.Playlist;
+import com.dreamflow.api.song.entity.Song;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +32,10 @@ public class User {
     private Role role;
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Playlist> playlists = new ArrayList<>();
+    @OneToMany(mappedBy = "uploadedBy")
+    private List<Song> songs = new ArrayList<>();
 
     public void addPlaylist(Playlist playlist){
         playlist.setUser(this);

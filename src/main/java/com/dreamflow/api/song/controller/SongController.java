@@ -2,6 +2,7 @@ package com.dreamflow.api.song.controller;
 
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.dto.StreamResponse;
+import com.dreamflow.api.song.entity.VisibilityStatus;
 import com.dreamflow.api.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +41,8 @@ public class SongController {
             @PathVariable("id") int id,
             @RequestHeader(value="Range", required = false) String rangeHeader
     ) throws IOException  {
-        StreamResponse response = songService.streamSong(id, rangeHeader);
+        String songPath = songService.getSongPath(id, VisibilityStatus.APPROVED);
+        StreamResponse response = songService.streamSong(songPath, rangeHeader);
 
         if (!response.isParital()){
             return ResponseEntity
@@ -58,4 +60,6 @@ public class SongController {
                 ).header(HttpHeaders.CONTENT_RANGE, "bytes "+response.start()+"-"+response.end()+"/"+response.fileLength())
                 .body(response.resource());
     }
+
+
 }

@@ -68,6 +68,7 @@ public class DreamflowSecurityConfig {
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/home/**").authenticated()
                                 .requestMatchers("/ws/**").authenticated()
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers(
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",

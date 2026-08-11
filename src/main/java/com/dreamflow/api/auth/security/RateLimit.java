@@ -1,4 +1,4 @@
-package com.dreamflow.api.security;
+package com.dreamflow.api.auth.security;
 import com.dreamflow.api.util.GeneralResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.*;

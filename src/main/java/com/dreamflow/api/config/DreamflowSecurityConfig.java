@@ -1,7 +1,7 @@
 package com.dreamflow.api.config;
 
-import com.dreamflow.api.security.JwtFilter;
-import com.dreamflow.api.security.RateLimit;
+import com.dreamflow.api.auth.security.JwtFilter;
+import com.dreamflow.api.auth.security.RateLimit;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,14 +68,12 @@ public class DreamflowSecurityConfig {
                                 .requestMatchers("/me/**").authenticated()
                                 .requestMatchers("/home/**").authenticated()
                                 .requestMatchers("/ws/**").authenticated()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/admin/users/**").hasRole("SUPER_ADMIN")
+                                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                                 .requestMatchers(
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
                                         "/upload",
                                         "/upload/**"
-                                ).authenticated()
+                                ).hasAnyRole("ADMIN", "ARTIST")
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex->ex.authenticationEntryPoint(

@@ -1,13 +1,10 @@
 package com.dreamflow.api.auth.service;
 
 import com.dreamflow.api.auth.dto.UserResponse;
-import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
-import com.dreamflow.api.exception.exceptions.ResourceNotFoundException;
-import com.dreamflow.api.security.CustomUserDetails;
-import com.dreamflow.api.security.JwtService;
+import com.dreamflow.api.auth.security.CustomUserDetails;
+import com.dreamflow.api.auth.security.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

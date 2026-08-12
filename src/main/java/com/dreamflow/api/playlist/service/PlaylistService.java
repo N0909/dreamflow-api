@@ -9,7 +9,7 @@ import com.dreamflow.api.playlist.entity.Playlist;
 import com.dreamflow.api.playlist.entity.PlaylistSong;
 import com.dreamflow.api.playlist.repository.PlaylistRepository;
 import com.dreamflow.api.playlist.repository.PlaylistSongRepository;
-import com.dreamflow.api.security.CustomUserDetails;
+import com.dreamflow.api.auth.security.CustomUserDetails;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.repository.SongRepository;
@@ -19,9 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 

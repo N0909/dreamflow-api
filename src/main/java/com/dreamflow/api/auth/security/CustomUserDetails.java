@@ -1,4 +1,4 @@
-package com.dreamflow.api.security;
+package com.dreamflow.api.auth.security;
 
 import com.dreamflow.api.auth.entity.Role;
 import org.jspecify.annotations.Nullable;
@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails, Serializable {

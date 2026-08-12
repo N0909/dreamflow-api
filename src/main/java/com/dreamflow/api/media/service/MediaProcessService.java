@@ -2,7 +2,7 @@ package com.dreamflow.api.media.service;
 import com.dreamflow.api.auth.entity.User;
 import com.dreamflow.api.auth.repository.UserRepository;
 import com.dreamflow.api.exception.exceptions.*;
-import com.dreamflow.api.security.CustomUserDetails;
+import com.dreamflow.api.auth.security.CustomUserDetails;
 import com.dreamflow.api.song.entity.Song;
 import com.dreamflow.api.song.entity.UploadStatus;
 import com.dreamflow.api.song.repository.SongRepository;

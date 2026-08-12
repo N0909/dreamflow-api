@@ -1,4 +1,4 @@
-package com.dreamflow.api.security;
+package com.dreamflow.api.auth.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

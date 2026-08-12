@@ -3,7 +3,7 @@ package com.dreamflow.api.home.service;
 import com.dreamflow.api.home.dto.HomeResponseDTO;
 import com.dreamflow.api.playlist.dto.PlaylistResponse;
 import com.dreamflow.api.playlist.service.PlaylistService;
-import com.dreamflow.api.security.CustomUserDetails;
+import com.dreamflow.api.auth.security.CustomUserDetails;
 import com.dreamflow.api.song.dto.SongDTO;
 import com.dreamflow.api.song.service.SongService;
 import lombok.RequiredArgsConstructor;

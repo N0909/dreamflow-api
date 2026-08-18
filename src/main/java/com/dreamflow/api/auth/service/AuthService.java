@@ -9,7 +9,8 @@ import com.dreamflow.api.exception.exceptions.IllegalTokenException;
 import com.dreamflow.api.auth.security.CustomUserDetails;
 import com.dreamflow.api.auth.security.CustomeUserDetailsService;
 import com.dreamflow.api.auth.security.JwtService;
-import com.dreamflow.api.util.service.email.EmailService;
+import com.dreamflow.api.messaging.email.EmailMessage;
+import com.dreamflow.api.messaging.email.interfaces.EmailMessageProducer;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomeUserDetailsService userDetailsService;
-    private final EmailService emailService;
+//    private final EmailService emailService;
+    private final EmailMessageProducer emailMessageProducer;
     private static final String REFRESH = "refresh";
     private static final String ACCESS = "access";
     private Set<Role> allowedRoles = Set.of(Role.USER, Role.ARTIST);
@@ -95,7 +97,9 @@ public class AuthService {
 
         String subject = "Welcome to Dreamflow.";
 
-        emailService.sendMail(input.email(), subject, welcomeText);
+//        emailService.sendMail(input.email(), subject, welcomeText); replaced by messagebroker
+
+        emailMessageProducer.publish(new EmailMessage(UUID.randomUUID(),input.email(), subject, welcomeText));
 
         return new LoginResponse(accessToken, refreshToken);
     }

@@ -16,6 +16,7 @@ public class EmailRabbitMQConfig {
     public static final String EMAIL_DLX = "email.dlx";
     public static final String EMAIL_DLQ = "email.dlq";
     public static final String EMAIL_DLQ_ROUTING_KEY = "email.dead";
+
     @Bean
     public Queue emailQueue(){
         return QueueBuilder
@@ -24,14 +25,15 @@ public class EmailRabbitMQConfig {
                 .deadLetterRoutingKey(EMAIL_DLQ_ROUTING_KEY)
                 .build();
     }
+
     @Bean
     public Queue emailDeadlaterQueue(){return QueueBuilder.durable(EMAIL_DLQ).build();}
-
 
     @Bean
     public DirectExchange emailExchange(){
         return new DirectExchange(EXCHANGE);
     }
+
     @Bean
     public DirectExchange emailDeadlaterExchange() { return new DirectExchange(EMAIL_DLX);}
 

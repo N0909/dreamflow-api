@@ -21,6 +21,7 @@ public class AsyncEvent {
         this.updatedAt = updatedAt;
     }
 
+    @Id
     @Column(name="event_id", length = 36, nullable = false)
     private UUID eventId;
     @Column(name="worker", nullable = false)
